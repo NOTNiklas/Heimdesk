@@ -131,6 +131,7 @@ export interface Actions {
   pause: (uid: string, v: { days: number; note?: string }) => void
   transform: (uid: string, v: { type: TicketType; note?: string }) => void
   editTicket: (uid: string, patch: Partial<Ticket>) => void
+  deleteTicket: (uid: string) => void
   withdraw: (uid: string, reason: string) => void
   reopen: (uid: string, reason: string) => void
   solveClose: (uid: string, solution: string) => void
@@ -297,6 +298,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     editTicket(uid, patch) {
       update((_next, findT) => { const t = findT(uid); if (!t) return
         Object.assign(t, patch); t.updatedAt = Date.now(); logComment(t, ui.user, 'Ticket-Details bearbeitet.') })
+    },
+    deleteTicket(uid) {
+      update(next => {
+        const i = next.tickets.findIndex(t => t.uid === uid)
+        if (i === -1) return
+        next.tickets.splice(i, 1)
+      })
     },
     withdraw(uid, reason) {
       update((next, findT) => { const t = findT(uid); if (!t) return
