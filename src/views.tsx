@@ -12,6 +12,7 @@ import {
 import {
   displayId, fmtDate, fmtDateShort, relTime, fmtText, slaState, isEscalated, assetName, ticketMatches,
 } from './lib'
+import { generateSyncCode, loadSyncConfig, SUPABASE_SQL } from './sync'
 
 /* ============================================================ LISTE */
 export function TicketListView() {
@@ -543,6 +544,7 @@ export function SettingsView() {
               <button className="btn danger" onClick={() => actions.resetAll()}>🗑 Alles zurücksetzen</button>
             </div>
           </Panel>
+          <SyncPanel />
         </div>
         <div className="detail-side">
           <ListEditor title="Nutzer" k="users" />
@@ -551,6 +553,84 @@ export function SettingsView() {
         </div>
       </div>
     </>
+  )
+}
+
+/* ---------- Cloud-Sync (Supabase) ---------- */
+function SyncPanel() {
+  const { sync, actions, toast } = useStore()
+  const saved = loadSyncConfig()
+  const [url, setUrl] = useState(saved?.url ?? '')
+  const [anonKey, setAnonKey] = useState(saved?.anonKey ?? '')
+  const [code, setCode] = useState(saved?.code ?? '')
+  const [showSql, setShowSql] = useState(false)
+
+  const statusText: Record<string, string> = {
+    disabled: 'Nicht verbunden', idle: 'Bereit', syncing: 'Synchronisiert …',
+    ok: 'Synchron', offline: 'Offline – wird bei Verbindung übertragen', error: 'Fehler',
+  }
+  const statusColor: Record<string, string> = {
+    disabled: 'var(--muted)', idle: 'var(--muted)', syncing: 'var(--brand)',
+    ok: 'var(--ok)', offline: 'var(--warn)', error: 'var(--danger)',
+  }
+  const dot = statusColor[sync.status] ?? 'var(--muted)'
+
+  const inputStyle: React.CSSProperties = { width: '100%', padding: '8px 10px', border: '1px solid var(--border-2)', borderRadius: 8, background: 'var(--panel-2)', color: 'var(--text)', fontFamily: 'inherit' }
+
+  return (
+    <Panel head={<>☁️ Cloud-Sync <span className="hint" style={{ fontWeight: 400 }}>(optional, Supabase)</span></>}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <span className="badge" style={{ background: 'transparent', border: '1px solid var(--border)' }}>
+          <span className="dot" style={{ background: dot }} /> {statusText[sync.status] ?? sync.status}
+        </span>
+        {sync.lastAt && <span className="hint">zuletzt {relTime(sync.lastAt)}</span>}
+      </div>
+      {sync.error && <div className="jtext" style={{ borderLeftColor: 'var(--danger)', marginBottom: 12 }}>{sync.error}</div>}
+
+      <p className="hint" style={{ marginTop: 0 }}>
+        Synchronisiert alle Tickets über dein eigenes (kostenloses) Supabase-Projekt. Die Daten bleiben
+        offline nutzbar und werden hochgeladen, sobald Internet verfügbar ist. Auf einem zweiten Gerät
+        einfach dieselbe URL, denselben Anon-Key und denselben Sync-Code eintragen.
+      </p>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <Field label="Supabase Project-URL" hint="(Project Settings → API)">
+          <input style={inputStyle} value={url} onChange={e => setUrl(e.target.value)} placeholder="https://xxxx.supabase.co" />
+        </Field>
+        <Field label="Anon Public Key" hint="(öffentlicher Client-Key)">
+          <input style={inputStyle} value={anonKey} onChange={e => setAnonKey(e.target.value)} placeholder="eyJhbGciOi…" />
+        </Field>
+        <Field label="Sync-Code" hint="(geheim – auf allen Geräten gleich)">
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input style={inputStyle} value={code} onChange={e => setCode(e.target.value)} placeholder="z. B. generieren →" />
+            <button className="btn sm" type="button" onClick={() => setCode(generateSyncCode())}>🎲 Neu</button>
+          </div>
+        </Field>
+      </div>
+
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 14 }}>
+        <button className="btn primary" onClick={() => actions.configureSync({ url, anonKey, code })}>
+          🔗 {sync.configured ? 'Aktualisieren & synchronisieren' : 'Verbinden & synchronisieren'}
+        </button>
+        {sync.configured && <button className="btn" onClick={() => actions.syncNow()}>🔄 Jetzt synchronisieren</button>}
+        {sync.configured && <button className="btn danger" onClick={() => actions.disconnectSync()}>Trennen</button>}
+      </div>
+
+      <div style={{ marginTop: 14 }}>
+        <a className="hint" style={{ cursor: 'pointer' }} onClick={() => setShowSql(v => !v)}>
+          {showSql ? '▾' : '▸'} Einrichtung: SQL für Supabase (einmalig)
+        </a>
+        {showSql && (
+          <div style={{ marginTop: 8 }}>
+            <p className="hint" style={{ marginTop: 0 }}>
+              In Supabase → <b>SQL Editor</b> → neues Query → einfügen → <b>Run</b>. Danach oben URL, Anon-Key und Sync-Code eintragen.
+            </p>
+            <pre style={{ maxHeight: 220, overflow: 'auto', background: 'var(--panel-2)', border: '1px solid var(--border)', borderRadius: 8, padding: 12, fontSize: 12, whiteSpace: 'pre' }}>{SUPABASE_SQL}</pre>
+            <button className="btn sm" type="button" onClick={() => { navigator.clipboard?.writeText(SUPABASE_SQL); toast('SQL kopiert.', 'ok') }}>📋 SQL kopieren</button>
+          </div>
+        )}
+      </div>
+    </Panel>
   )
 }
 
