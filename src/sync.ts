@@ -60,7 +60,11 @@ async function hashCode(code: string): Promise<string> {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('heimdesk:' + code))
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
 }
-function normUrl(url: string): string { return url.trim().replace(/\/+$/, '') }
+function normUrl(url: string): string {
+  // Trailing-Slashes entfernen und ein versehentlich mitkopiertes "/rest/v1"
+  // abschneiden – die App hängt den REST-Pfad selbst an.
+  return url.trim().replace(/\/+$/, '').replace(/\/rest\/v1$/i, '').replace(/\/+$/, '')
+}
 function headers(cfg: SyncConfig): Record<string, string> {
   return { apikey: cfg.anonKey, Authorization: 'Bearer ' + cfg.anonKey, 'Content-Type': 'application/json' }
 }
