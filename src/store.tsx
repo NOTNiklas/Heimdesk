@@ -8,6 +8,11 @@ import {
   type Priority, type TicketType, type Rating, type Attachment,
 } from './domain'
 import { displayId, isEscalated, readFiles } from './lib'
+import {
+  loadSyncConfig, saveSyncConfig, loadSyncMeta, saveSyncMeta,
+  pull as syncPull, push as syncPush, isOnline,
+  type SyncConfig, type SyncState,
+} from './sync'
 
 /* ---------- Laden / Speichern ---------- */
 function loadDB(): DB {
@@ -148,11 +153,15 @@ export interface Actions {
   exportData: () => void
   importData: (file: File) => void
   resetAll: () => void
+  configureSync: (cfg: SyncConfig) => Promise<void>
+  syncNow: () => Promise<void>
+  disconnectSync: () => void
 }
 export interface StoreCtx {
   db: DB
   ui: UIState
   toasts: Toast[]
+  sync: SyncState
   setUi: (patch: Partial<UIState>) => void
   go: (view: UIState['view'], current?: string) => void
   openTicket: (uid: string) => void
@@ -197,6 +206,71 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }
   function openTicket(uid: string) { setUi({ view: 'detail', current: uid }) }
 
+  /* ---------- Cloud-Sync (optional) ---------- */
+  const cfgRef = useRef<SyncConfig | null>(loadSyncConfig())
+  const metaRef = useRef(loadSyncMeta())
+  const dirtyRef = useRef(false)
+  const pushTimer = useRef<number | null>(null)
+  const dbRef = useRef(db)
+  const [sync, setSync] = useState<SyncState>({
+    configured: !!cfgRef.current, status: cfgRef.current ? 'idle' : 'disabled', lastAt: null, error: null,
+  })
+  useEffect(() => { dbRef.current = db }, [db])
+
+  function adoptRemote(data: DB, updatedAt: number) {
+    metaRef.current = { updatedAt }; saveSyncMeta(metaRef.current); dirtyRef.current = false
+    persistDB(data); setDb(data)
+  }
+  async function flushPush() {
+    const cfg = cfgRef.current
+    if (!cfg || !dirtyRef.current) return
+    if (!isOnline()) { setSync(s => ({ ...s, status: 'offline' })); return }
+    setSync(s => ({ ...s, status: 'syncing', error: null }))
+    try {
+      await syncPush(cfg, dbRef.current, metaRef.current.updatedAt)
+      dirtyRef.current = false
+      setSync(s => ({ ...s, status: 'ok', lastAt: Date.now(), error: null }))
+    } catch (e) {
+      setSync(s => ({ ...s, status: 'error', error: String((e as Error)?.message || e) }))
+    }
+  }
+  function schedulePush(delay = 1500) {
+    if (!cfgRef.current) return
+    if (pushTimer.current) clearTimeout(pushTimer.current)
+    pushTimer.current = window.setTimeout(() => { void flushPush() }, delay)
+  }
+  function markLocalChange() {
+    if (!cfgRef.current) return
+    metaRef.current = { updatedAt: Date.now() }; saveSyncMeta(metaRef.current)
+    dirtyRef.current = true; schedulePush()
+  }
+  async function runStartupSync() {
+    const cfg = cfgRef.current
+    if (!cfg) return
+    if (!isOnline()) { setSync(s => ({ ...s, status: 'offline' })); return }
+    setSync(s => ({ ...s, status: 'syncing', error: null }))
+    try {
+      const remote = await syncPull(cfg)
+      if (remote && remote.updatedAt > metaRef.current.updatedAt) {
+        adoptRemote(remote.data, remote.updatedAt)
+      } else if (!remote || dirtyRef.current || remote.updatedAt < metaRef.current.updatedAt) {
+        dirtyRef.current = true; await flushPush(); return
+      }
+      setSync(s => ({ ...s, status: 'ok', lastAt: Date.now(), error: null }))
+    } catch (e) {
+      setSync(s => ({ ...s, status: 'error', error: String((e as Error)?.message || e) }))
+    }
+  }
+  useEffect(() => {
+    void runStartupSync()
+    const onOnline = () => { if (dirtyRef.current) void flushPush(); else void runStartupSync() }
+    const onOffline = () => setSync(s => (cfgRef.current ? { ...s, status: 'offline' } : s))
+    window.addEventListener('online', onOnline)
+    window.addEventListener('offline', onOffline)
+    return () => { window.removeEventListener('online', onOnline); window.removeEventListener('offline', onOffline) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // zentrale Mutation
   function update(mut: (d: DB, findT: (uid: string) => Ticket | undefined) => void) {
     setDb(prev => {
@@ -206,6 +280,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       persistDB(next)
       return next
     })
+    markLocalChange()
   }
 
   const actions: Actions = {
@@ -354,15 +429,45 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     importData(file) {
       const r = new FileReader()
       r.onload = () => { try { const d = JSON.parse(r.result as string); if (!d.tickets) throw new Error('invalid')
-        persistDB(d); setDb(d); toast('Import erfolgreich.', 'ok'); go('list') } catch { toast('Ungültige Datei.', 'err') } }
+        persistDB(d); setDb(d); markLocalChange(); toast('Import erfolgreich.', 'ok'); go('list') } catch { toast('Ungültige Datei.', 'err') } }
       r.readAsText(file)
     },
     resetAll() {
       if (!confirm('Wirklich ALLE Daten löschen und Beispieldaten wiederherstellen?')) return
-      const fresh = seed(Date.now()); persistDB(fresh); setDb(fresh); toast('Zurückgesetzt.', 'ok'); go('list')
+      const fresh = seed(Date.now()); persistDB(fresh); setDb(fresh); markLocalChange(); toast('Zurückgesetzt.', 'ok'); go('list')
+    },
+    async configureSync(cfg) {
+      const clean: SyncConfig = { url: cfg.url.trim(), anonKey: cfg.anonKey.trim(), code: cfg.code.trim() }
+      if (!clean.url || !clean.anonKey || !clean.code) { toast('Bitte URL, Anon-Key und Sync-Code angeben.', 'err'); return }
+      cfgRef.current = clean; saveSyncConfig(clean)
+      setSync({ configured: true, status: 'syncing', lastAt: null, error: null })
+      try {
+        const remote = await syncPull(clean)
+        if (remote) {
+          adoptRemote(remote.data, remote.updatedAt)
+        } else {
+          metaRef.current = { updatedAt: Date.now() }; saveSyncMeta(metaRef.current)
+          await syncPush(clean, dbRef.current, metaRef.current.updatedAt); dirtyRef.current = false
+        }
+        setSync({ configured: true, status: 'ok', lastAt: Date.now(), error: null })
+        toast('Cloud-Sync verbunden.', 'ok')
+      } catch (e) {
+        const msg = String((e as Error)?.message || e)
+        setSync({ configured: true, status: 'error', lastAt: null, error: msg })
+        toast('Sync fehlgeschlagen: ' + msg, 'err')
+      }
+    },
+    async syncNow() {
+      if (!cfgRef.current) return
+      if (dirtyRef.current) await flushPush(); else await runStartupSync()
+    },
+    disconnectSync() {
+      cfgRef.current = null; saveSyncConfig(null); dirtyRef.current = false
+      setSync({ configured: false, status: 'disabled', lastAt: null, error: null })
+      toast('Cloud-Sync getrennt.', 'ok')
     },
   }
 
-  const value: StoreCtx = { db, ui, toasts, setUi, go, openTicket, toast, actions }
+  const value: StoreCtx = { db, ui, toasts, sync, setUi, go, openTicket, toast, actions }
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
