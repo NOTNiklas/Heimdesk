@@ -7,7 +7,7 @@ import { useStore } from './store'
 import { STATUS, STATUS_ORDER, TYPES, TRANSFORM, type Ticket, type Status, type TicketType } from './domain'
 import { fmtDateShort, displayId } from './lib'
 
-export type ModalKind = 'assign' | 'status' | 'pause' | 'transform' | 'withdraw' | 'reopen' | 'close' | 'rate'
+export type ModalKind = 'assign' | 'status' | 'pause' | 'transform' | 'withdraw' | 'reopen' | 'close' | 'rate' | 'delete'
 
 export const ModalContext = createContext<{ open: (k: ModalKind, uid: string) => void }>({ open: () => {} })
 export function useModals() { return useContext(ModalContext) }
@@ -35,6 +35,7 @@ export function ModalHost({ kind, uid, onClose }: { kind: ModalKind; uid: string
     case 'reopen': return <ReopenModal t={t} onClose={onClose} />
     case 'close': return <CloseModal t={t} onClose={onClose} />
     case 'rate': return <RateModal t={t} onClose={onClose} />
+    case 'delete': return <DeleteModal t={t} onClose={onClose} />
   }
 }
 
@@ -154,6 +155,28 @@ function RateModal({ t, onClose }: { t: Ticket; onClose: () => void }) {
     <Modal title={'Ticket bewerten — ' + displayId(t)} onClose={onClose} footer={<Footer onClose={onClose} onSubmit={submit} label="Bewertung senden" />}>
       <Field label="Wie zufrieden bist du?" required><StarsInput value={stars} onChange={setStars} /></Field>
       <Field label="Kommentar (optional)"><textarea value={comment} onChange={e => setComment(e.target.value)} /></Field>
+    </Modal>
+  )
+}
+
+function DeleteModal({ t, onClose }: { t: Ticket; onClose: () => void }) {
+  const { actions, toast, go } = useStore()
+  const submit = () => {
+    actions.deleteTicket(t.uid)
+    toast('Ticket ' + displayId(t) + ' gelöscht.', 'ok')
+    onClose()
+    go('list')
+  }
+  return (
+    <Modal title="Ticket löschen" onClose={onClose} footer={<Footer onClose={onClose} onSubmit={submit} label="Endgültig löschen" danger />}>
+      <p style={{ margin: 0 }}>
+        Ticket <b>{displayId(t)}</b> – „{t.summary}" wird <b>unwiderruflich</b> gelöscht,
+        inklusive Verlauf, Kommentaren und Anhängen.
+      </p>
+      <div className="hint" style={{ color: 'var(--danger)' }}>
+        Diese Aktion kann nicht rückgängig gemacht werden. Zum bloßen Beenden eines Vorgangs
+        besser „Zurückziehen" oder „Abschließen" verwenden.
+      </div>
     </Modal>
   )
 }

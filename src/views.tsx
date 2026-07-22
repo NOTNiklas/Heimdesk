@@ -177,6 +177,7 @@ export function TicketDetailView() {
         </>}
         {!openStatus && !db.settings.reopenLocked && (isOwner(ui, t) || isAgent(ui)) && <button className="btn" onClick={() => open('reopen', t.uid)}>🔁 Wiedereröffnen</button>}
         {t.status === 'closed' && isOwner(ui, t) && !t.rating && <button className="btn primary" onClick={() => open('rate', t.uid)}>⭐ Bewerten</button>}
+        {isAgent(ui) && <button className="btn danger" onClick={() => open('delete', t.uid)}>🗑 Löschen</button>}
       </div>
 
       <div className="detail-grid">
