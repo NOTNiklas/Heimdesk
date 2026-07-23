@@ -1,0 +1,207 @@
+{
+  "plugins": [
+    "react",
+    "import"
+  ],
+  "rules": {
+    "react/forbid-elements": [
+      "warn",
+      {
+        "forbid": []
+      }
+    ],
+    "no-restricted-imports": [
+      "warn",
+      {
+        "patterns": [
+          {
+            "group": [
+              "components/content/**",
+              "components/core/**",
+              "components/layout/**"
+            ],
+            "message": "Import design-system components from 'index.js', not component internals."
+          }
+        ]
+      }
+    ],
+    "no-restricted-syntax": [
+      "warn",
+      {
+        "selector": "Literal[value=/#[0-9a-fA-F]{3,8}\\b/]",
+        "message": "Raw hex color — use a design-system color token via var()."
+      },
+      {
+        "selector": "Literal[value=/\\b\\d+px\\b/]",
+        "message": "Raw px value — use a design-system spacing token via var()."
+      },
+      {
+        "selector": "Literal[value=/font-family\\s*:\\s*(?!['\\\"]?(?:Saira Condensed|Cormorant Garamond|JetBrains Mono))/i]",
+        "message": "Font not provided by the design system. Available: Saira Condensed, Cormorant Garamond, JetBrains Mono."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='ArticleCard'] > JSXAttribute > JSXIdentifier[name!=/^(?:image|date|title|children|href|style|key|ref|className|style|children)$/]",
+        "message": "<ArticleCard> doesn't accept that prop. Declared props: image, date, title, children, href, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute > JSXIdentifier[name!=/^(?:children|size|href|onClick|style|key|ref|className|style|children)$/]",
+        "message": "<Button> doesn't accept that prop. Declared props: children, size, href, onClick, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Button'] > JSXAttribute[name.name='size'] > Literal[value!=/^(?:md|sm)$/]",
+        "message": "<Button> size must be one of 'md' | 'sm'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='CalloutCard'] > JSXAttribute > JSXIdentifier[name!=/^(?:eyebrow|children|linkLabel|href|width|style|key|ref|className|style|children)$/]",
+        "message": "<CalloutCard> doesn't accept that prop. Declared props: eyebrow, children, linkLabel, href, width, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='CtaBand'] > JSXAttribute > JSXIdentifier[name!=/^(?:headline|cta|href|style|key|ref|className|style|children)$/]",
+        "message": "<CtaBand> doesn't accept that prop. Declared props: headline, cta, href, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='HeroBand'] > JSXAttribute > JSXIdentifier[name!=/^(?:eyebrow|headline|children|cta|photo|style|key|ref|className|style|children)$/]",
+        "message": "<HeroBand> doesn't accept that prop. Declared props: eyebrow, headline, children, cta, photo, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='IconButton'] > JSXAttribute > JSXIdentifier[name!=/^(?:children|onClick|style|key|ref|className|style|children)$/]",
+        "message": "<IconButton> doesn't accept that prop. Declared props: children, onClick, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='ListingRow'] > JSXAttribute > JSXIdentifier[name!=/^(?:title|meta|href|style|key|ref|className|style|children)$/]",
+        "message": "<ListingRow> doesn't accept that prop. Declared props: title, meta, href, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='ModelCard'] > JSXAttribute > JSXIdentifier[name!=/^(?:image|name|specs|linkLabel|href|style|key|ref|className|style|children)$/]",
+        "message": "<ModelCard> doesn't accept that prop. Declared props: image, name, specs, linkLabel, href, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='SiteFooter'] > JSXAttribute > JSXIdentifier[name!=/^(?:wordmark|columns|style|key|ref|className|style|children)$/]",
+        "message": "<SiteFooter> doesn't accept that prop. Declared props: wordmark, columns, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='SpecCell'] > JSXAttribute > JSXIdentifier[name!=/^(?:value|label|style|key|ref|className|style|children)$/]",
+        "message": "<SpecCell> doesn't accept that prop. Declared props: value, label, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Tag'] > JSXAttribute > JSXIdentifier[name!=/^(?:children|style|key|ref|className|style|children)$/]",
+        "message": "<Tag> doesn't accept that prop. Declared props: children, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='TextInput'] > JSXAttribute > JSXIdentifier[name!=/^(?:label|placeholder|value|onChange|type|style|key|ref|className|style|children)$/]",
+        "message": "<TextInput> doesn't accept that prop. Declared props: label, placeholder, value, onChange, type, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='TextLink'] > JSXAttribute > JSXIdentifier[name!=/^(?:children|href|style|key|ref|className|style|children)$/]",
+        "message": "<TextLink> doesn't accept that prop. Declared props: children, href, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='TopNav'] > JSXAttribute > JSXIdentifier[name!=/^(?:wordmark|left|right|style|key|ref|className|style|children)$/]",
+        "message": "<TopNav> doesn't accept that prop. Declared props: wordmark, left, right, style."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/index.js"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ],
+  "x-omelette": {
+    "components": {
+      "ArticleCard": {
+        "replaces": []
+      },
+      "Button": {
+        "replaces": []
+      },
+      "CalloutCard": {
+        "replaces": []
+      },
+      "CtaBand": {
+        "replaces": []
+      },
+      "HeroBand": {
+        "replaces": []
+      },
+      "IconButton": {
+        "replaces": []
+      },
+      "ListingRow": {
+        "replaces": []
+      },
+      "ModelCard": {
+        "replaces": []
+      },
+      "SiteFooter": {
+        "replaces": []
+      },
+      "SpecCell": {
+        "replaces": []
+      },
+      "Tag": {
+        "replaces": []
+      },
+      "TextInput": {
+        "replaces": []
+      },
+      "TextLink": {
+        "replaces": []
+      },
+      "TopNav": {
+        "replaces": []
+      }
+    },
+    "tokens": [
+      "--lux-body",
+      "--lux-body-strong",
+      "--lux-canvas",
+      "--lux-font-body",
+      "--lux-font-display",
+      "--lux-font-mono",
+      "--lux-hairline",
+      "--lux-hairline-strong",
+      "--lux-ink",
+      "--lux-link",
+      "--lux-muted",
+      "--lux-muted-soft",
+      "--lux-radius-pill",
+      "--lux-space-section",
+      "--lux-success",
+      "--lux-surface-card",
+      "--lux-surface-elevated",
+      "--lux-surface-soft",
+      "--lux-warning"
+    ],
+    "tokenKinds": {
+      "--lux-canvas": "color",
+      "--lux-surface-soft": "color",
+      "--lux-surface-card": "color",
+      "--lux-surface-elevated": "color",
+      "--lux-ink": "color",
+      "--lux-body": "color",
+      "--lux-body-strong": "color",
+      "--lux-muted": "color",
+      "--lux-muted-soft": "color",
+      "--lux-hairline": "color",
+      "--lux-hairline-strong": "color",
+      "--lux-link": "color",
+      "--lux-warning": "color",
+      "--lux-success": "color",
+      "--lux-font-display": "font",
+      "--lux-font-body": "font",
+      "--lux-font-mono": "font",
+      "--lux-radius-pill": "radius",
+      "--lux-space-section": "spacing"
+    },
+    "fontFamilies": [
+      "Cormorant Garamond",
+      "JetBrains Mono",
+      "Saira Condensed"
+    ]
+  }
+}

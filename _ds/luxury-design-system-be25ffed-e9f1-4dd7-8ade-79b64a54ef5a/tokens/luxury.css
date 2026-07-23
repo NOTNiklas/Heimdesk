@@ -1,0 +1,30 @@
+/* LUXURY system — black monochrome, letterspaced uppercase display. Prefix: --lux- */
+:root {
+  /* surfaces */
+  --lux-canvas: #000000;
+  --lux-surface-soft: #0d0d0d;
+  --lux-surface-card: #141414;
+  --lux-surface-elevated: #1f1f1f;
+  /* text */
+  --lux-ink: #ffffff;
+  --lux-body: #cccccc;
+  --lux-body-strong: #e6e6e6;
+  --lux-muted: #999999;
+  --lux-muted-soft: #666666;
+  /* lines */
+  --lux-hairline: #262626;
+  --lux-hairline-strong: #3a3a3a;
+  /* the only non-monochrome color */
+  --lux-link: #c3d9f3;
+  /* semantic (rare) */
+  --lux-warning: #d4a017;
+  --lux-success: #5fa657;
+  /* type trinity — weight 400 everywhere */
+  --lux-font-display: "Saira Condensed", sans-serif;
+  --lux-font-body: "Cormorant Garamond", Garamond, serif;
+  --lux-font-mono: "JetBrains Mono", ui-monospace, monospace;
+  /* radii: 0 everywhere; pill on buttons only */
+  --lux-radius-pill: 9999px;
+  /* spacing: 4 8 12 16 24 40 64; section 120px */
+  --lux-space-section: 120px;
+}
