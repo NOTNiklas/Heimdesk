@@ -94,7 +94,10 @@
   <sc-if value="{{ mobile }}" hint-placeholder-val="{{ false }}">
     <header style="position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:12px;height:60px;padding:0 16px;background:#000;border-bottom:1px solid #262626">
       <button onClick="{{ toggleNav }}" aria-label="Menü" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border:1px solid #3a3a3a;border-radius:9999px;background:transparent;color:#fff">{{ iconMenu }}</button>
-      <div style="display:flex;align-items:baseline;gap:3px;font-family:'Saira Condensed',sans-serif;font-size:20px;letter-spacing:4px;text-transform:uppercase;color:#fff">HEIM<span style="color:#666">DESK</span></div>
+      <div style="display:flex;align-items:center;gap:9px">
+        <span style="display:flex;color:#fff">{{ logoMark }}</span>
+        <div style="display:flex;align-items:baseline;gap:3px;font-family:'Saira Condensed',sans-serif;font-size:20px;letter-spacing:4px;text-transform:uppercase;color:#fff">HEIM<span style="color:#666">DESK</span></div>
+      </div>
       <div style="flex:1"></div>
       <button onClick="{{ toggleSearch }}" aria-label="Suche" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border:1px solid #3a3a3a;border-radius:9999px;background:transparent;color:#fff">{{ iconSearch }}</button>
     </header>
@@ -109,7 +112,10 @@
     <div onClick="{{ closeNav }}" style="position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.72);animation:hd-fade .18s ease">
       <nav onClick="{{ stop }}" class="hd-sc" style="position:absolute;top:0;left:0;bottom:0;width:280px;max-width:84vw;background:#0d0d0d;border-right:1px solid #262626;padding:22px 16px;overflow-y:auto;animation:hd-drawer .22s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;gap:4px">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 6px 18px">
-          <div style="display:flex;align-items:baseline;gap:3px;font-family:'Saira Condensed',sans-serif;font-size:21px;letter-spacing:4px;text-transform:uppercase;color:#fff">HEIM<span style="color:#666">DESK</span></div>
+          <div style="display:flex;align-items:center;gap:9px">
+            <span style="display:flex;color:#fff">{{ logoMark }}</span>
+            <div style="display:flex;align-items:baseline;gap:3px;font-family:'Saira Condensed',sans-serif;font-size:21px;letter-spacing:4px;text-transform:uppercase;color:#fff">HEIM<span style="color:#666">DESK</span></div>
+          </div>
           <button onClick="{{ closeNav }}" aria-label="Schließen" style="display:flex;width:36px;height:36px;align-items:center;justify-content:center;border:none;background:none;color:#999">{{ iconX }}</button>
         </div>
         <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="7">
@@ -131,7 +137,10 @@
 
   <sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}">
     <header style="position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:32px;height:72px;padding:0 40px;background:#000;border-bottom:1px solid #262626">
-      <div style="display:flex;align-items:baseline;gap:3px;font-family:'Saira Condensed',sans-serif;font-size:22px;letter-spacing:5px;text-transform:uppercase;color:#fff;margin-right:8px">HEIM<span style="color:#666">DESK</span></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-right:8px">
+        <span style="display:flex;color:#fff">{{ logoMark }}</span>
+        <div style="display:flex;align-items:baseline;gap:3px;font-family:'Saira Condensed',sans-serif;font-size:22px;letter-spacing:5px;text-transform:uppercase;color:#fff">HEIM<span style="color:#666">DESK</span></div>
+      </div>
       <nav style="display:flex;align-items:center;gap:6px">
         <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="7">
           <button class="lx-nav-btn" onClick="{{ n.onClick }}" style="{{ n.topStyle }}">{{ n.label }}</button>
@@ -176,7 +185,7 @@ class Component extends DCLogic {
   PRIORITY_ORDER=['low','medium','high','critical'];
   TRANSFORM={ticket:['incident','service_request','problem','change','task'],incident:['problem','change','task','service_request'],service_request:['task','change','incident'],problem:['change','task','incident'],task:['incident','change'],change:['task','problem']};
 
-  state={db:null,ui:null,toasts:[],sync:{configured:false,status:'disabled',lastAt:null,error:null},modal:null,mf:{},undo:null,mobile:false,navOpen:false,searchOpen:false,reloading:false,lastReload:null,det:{comment:''},listLoading:true,viewLoading:false,pushes:[],spin:0};
+  state={db:null,ui:null,toasts:[],sync:{configured:false,status:'disabled',lastAt:null,error:null},modal:null,mf:{},undo:null,mobile:false,navOpen:false,searchOpen:false,reloading:false,lastReload:null,det:{comment:''},listLoading:true,viewLoading:false,pushes:[],spin:0,vvh:(typeof window!=='undefined'?window.innerHeight:800)};
 
   /* ---------- load / persist ---------- */
   migrateDB(d){if(d&&!Array.isArray(d.todos))d.todos=[];return d;}
@@ -192,8 +201,17 @@ class Component extends DCLogic {
   componentDidMount(){
     this.onResize=()=>{const m=window.innerWidth<820;if(m!==this.state.mobile){this.setState({mobile:m,navOpen:false});if(m)setTimeout(()=>this.notifyExpiring(),900);}};
     this.onResize();window.addEventListener('resize',this.onResize);
+    // Visuellen Viewport verfolgen: schrumpft auf Mobilgeräten, wenn die Bildschirmtastatur öffnet
+    // (anders als window.innerHeight/100vh) - damit Modal-Footer (Speichern/Anlegen) nicht dahinter verschwinden.
+    if(window.visualViewport){
+      this.onVV=()=>this.setState({vvh:window.visualViewport.height});
+      window.visualViewport.addEventListener('resize',this.onVV);
+      this.onVV();
+    }
     setTimeout(()=>this.notifyExpiring(),3400);
     this._sla=setInterval(()=>this.notifyExpiring(),60000);
+    setTimeout(()=>this.checkDueReminders(),3800);
+    this._reminders=setInterval(()=>this.checkDueReminders(),60000);
     this.setState(s=>{const d=structuredClone(s.db);if(this.runAutomation(d)){this.persistDB(d);return {db:d};}return null;});
     this.onKey=(e)=>{if(e.key==='Escape'){if(this.state.modal)this.closeModal();else if(this.state.navOpen)this.setState({navOpen:false});}
       if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();this.setState({searchOpen:true});const el=document.querySelector('input[placeholder^="SUCHEN"],input[placeholder^="Tickets"]');if(el)el.focus();}};
@@ -207,16 +225,38 @@ class Component extends DCLogic {
   triggerViewLoad(view){const perItem={dashboard:500,kb:1000,catalog:1000,assets:1000}[view];let dur=0;if(perItem){const n=this.viewItemCount(view);dur=n?Math.min(4000,Math.max(400,n*perItem)):0;}if(this._viewT)clearTimeout(this._viewT);if(dur){this.setState({viewLoading:true});this._viewT=setTimeout(()=>this.setState({viewLoading:false}),dur);}else if(this.state.viewLoading){this.setState({viewLoading:false});}}
   viewSkeleton(){const h=React.createElement,C=this.C;const n=Math.max(3,Math.min(8,this.viewItemCount(this.state.ui.view)||6));const bar=(w,ht,mt)=>h('div',{className:'lx-skel',style:{width:w,height:ht||'14px',marginTop:mt||'0',borderRadius:'3px'}});const card=(k)=>h('div',{key:k,style:{border:'1px solid '+C.line,background:C.card,padding:'22px',animation:'hd-stagger .4s both',animationDelay:(k*55)+'ms'}},bar('40%','12px'),bar('80%','22px','14px'),bar('60%','12px','14px'));return h('div',{className:'lx-view'},h('div',{style:{marginBottom:'32px',paddingBottom:'20px',borderBottom:'1px solid '+C.line}},bar('120px','12px'),bar(this.state.mobile?'70%':'340px','44px','16px')),h('div',{style:{display:'grid',gridTemplateColumns:this.state.mobile?'1fr':'repeat(auto-fill,minmax(240px,1fr))',gap:'16px'}},Array.from({length:n},(_,i)=>i).map(i=>card(i))));}
 
-  /* ---------- mobile push notifications for expiring tickets ---------- */
+  /* ---------- mobile/OS push notifications ---------- */
   scanExpiring(){const out=[];this.selectVisible().forEach(t=>{if(!this.STATUS[t.status].open)return;const r=this.slaState(t,'resolution');const rr=this.slaState(t,'reaction');if(r.ok===false)out.push({t,kind:'overdue',txt:'SLA überschritten'});else if(r.warn)out.push({t,kind:'warn',txt:'Läuft bald aus · '+(r.txt||'')});else if(rr.ok===false)out.push({t,kind:'warn',txt:'Reaktionszeit überfällig'});});return out;}
-  notifyExpiring(force){this._notified=this._notified||new Set();const items=this.scanExpiring();const fresh=items.filter(x=>force||!this._notified.has(x.t.uid)).slice(0,3);if(!fresh.length)return;fresh.forEach((x,i)=>{this._notified.add(x.t.uid);setTimeout(()=>this.pushNotify(x),i*700);});}
-  pushNotify(x){const id=(this._pid=(this._pid||0)+1);const p={id,uid:x.t.uid,title:this.displayId(x.t)+' · '+x.txt,summary:x.t.summary,kind:x.kind};this.setState(s=>({pushes:[p,...s.pushes].slice(0,4)}));setTimeout(()=>this.dismissPush(id),7000);this.osNotify(p);}
+  notifyExpiring(force){this._notified=this._notified||new Set();const items=this.scanExpiring();const fresh=items.filter(x=>force||!this._notified.has(x.t.uid)).slice(0,3);
+    if(!fresh.length){if(force)this.demoPush();return;}
+    fresh.forEach((x,i)=>{this._notified.add(x.t.uid);setTimeout(()=>this.pushNotify(x),i*700);});}
+  pushNotify(x){const id=(this._pid=(this._pid||0)+1);this.showPush({id,uid:x.t.uid,todoId:null,title:this.displayId(x.t)+' · '+x.txt,summary:x.t.summary,kind:x.kind});}
+  demoPush(){const id=(this._pid=(this._pid||0)+1);this.showPush({id,uid:null,todoId:null,title:'Test-Hinweis',summary:'So sehen Benachrichtigungen aus. Aktuell ist nichts eskaliert oder fällig.',kind:'created'});this.toast('Test-Hinweis gesendet – aktuell ist nichts eskaliert oder fällig, daher ein Beispiel.','ok');}
+  showPush(p){this.setState(s=>({pushes:[p,...s.pushes].slice(0,4)}));setTimeout(()=>this.dismissPush(p.id),7000);this.osNotify(p);}
   notifState(){try{return (typeof Notification!=='undefined')?Notification.permission:'unsupported';}catch(e){return 'unsupported';}}
-  osNotify(p){try{if(typeof Notification==='undefined'||Notification.permission!=='granted')return;const n=new Notification('HeimDesk · '+p.title,{body:p.summary,tag:'hd-'+p.uid,silent:false});n.onclick=()=>{try{window.focus();}catch(e){}this.openTicket(p.uid);n.close();};}catch(e){}}
-  async requestNotif(){try{if(typeof Notification==='undefined'){this.toast('Benachrichtigungen werden hier nicht unterstützt.','err');return;}const r=await Notification.requestPermission();this.forceUpdate();if(r==='granted'){this.toast('Benachrichtigungen aktiviert.','ok');try{new Notification('HeimDesk',{body:'Du erhältst jetzt Hinweise zu auslaufenden Tickets.'});}catch(e){}this.notifyExpiring(true);}else this.toast('Benachrichtigungen abgelehnt.','err');}catch(e){this.toast('Nicht verfügbar (evtl. Vorschau-Sandbox).','err');}}
+  osNotify(p){try{if(typeof Notification==='undefined'||Notification.permission!=='granted')return;const n=new Notification('HeimDesk · '+p.title,{body:p.summary,tag:'hd-'+(p.uid||p.todoId||p.id),silent:false});n.onclick=()=>{try{window.focus();}catch(e){}this.openPushTarget(p);n.close();};}catch(e){}}
+  async requestNotif(){try{if(typeof Notification==='undefined'){this.toast('Benachrichtigungen werden hier nicht unterstützt.','err');return;}const r=await Notification.requestPermission();this.forceUpdate();if(r==='granted'){this.toast('Benachrichtigungen aktiviert.','ok');try{new Notification('HeimDesk',{body:'Du erhältst jetzt Hinweise zu auslaufenden und fälligen Vorgängen.'});}catch(e){}this.notifyExpiring(true);}else this.toast('Benachrichtigungen abgelehnt.','err');}catch(e){this.toast('Nicht verfügbar (evtl. Vorschau-Sandbox).','err');}}
   dismissPush(id){this.setState(s=>({pushes:s.pushes.filter(p=>p.id!==id)}));}
-  openPush(p){this.dismissPush(p.id);this.openTicket(p.uid);}
-  componentWillUnmount(){window.removeEventListener('resize',this.onResize);window.removeEventListener('keydown',this.onKey);if(this._sla)clearInterval(this._sla);}
+  openPushTarget(p){if(p.todoId)this.openModal('todoEdit',{id:p.todoId});else if(p.uid)this.openTicket(p.uid);}
+  openPush(p){this.dismissPush(p.id);this.openPushTarget(p);}
+
+  /* ---------- Fälligkeits-Erinnerungen: 1 h vorher + zum Fälligkeitszeitpunkt (Tickets & ToDo) ---------- */
+  NOTIF_DUE_KEY='heimdesk_notif_due_v1';
+  _loadNotifiedDue(){try{const r=localStorage.getItem(this.NOTIF_DUE_KEY);if(r)return JSON.parse(r);}catch(e){}return{};}
+  _saveNotifiedDue(m){try{localStorage.setItem(this.NOTIF_DUE_KEY,JSON.stringify(m));}catch(e){}}
+  ticketDueAt(t){return t.createdAt+this.PRIORITY[t.priority].resolution*3600000;}
+  dueItems(){const out=[];this.selectVisible().forEach(t=>{if(this.STATUS[t.status].open)out.push({kind:'ticket',id:t.uid,title:this.displayId(t)+' — '+t.summary,summary:t.summary,dueAt:this.ticketDueAt(t)});});(this.state.db.todos||[]).forEach(td=>{if(!td.done&&td.dueAt)out.push({kind:'todo',id:td.id,title:td.title,summary:td.description||('Fällig: '+this.fmtDateShort(td.dueAt)),dueAt:td.dueAt});});return out;}
+  checkDueReminders(){const now=Date.now();const map=this._notifDue||(this._notifDue=this._loadNotifiedDue());let changed=false;
+    this.dueItems().forEach(it=>{const preKey=it.kind+'_'+it.id+'_pre',dueKey=it.kind+'_'+it.id+'_due';
+      if(!map[preKey]&&now>=it.dueAt-3600000&&now<it.dueAt){this.fireDueNotification(it,'Fällig in 1 Stunde','due-soon');map[preKey]=true;changed=true;}
+      if(!map[dueKey]&&now>=it.dueAt){this.fireDueNotification(it,'Jetzt fällig','due-now');map[dueKey]=true;changed=true;}});
+    if(changed)this._saveNotifiedDue(map);}
+  fireDueNotification(it,label,kind){const id=(this._pid=(this._pid||0)+1);this.showPush({id,uid:it.kind==='ticket'?it.id:null,todoId:it.kind==='todo'?it.id:null,title:label+' · '+it.title,summary:it.summary,kind});}
+  /* ---------- Ereignis-Benachrichtigungen: neues Ticket, neues ToDo, mir zugewiesen ---------- */
+  notifyCreatedTicket(t){this.showPush({id:(this._pid=(this._pid||0)+1),uid:t.uid,todoId:null,title:'Neues Ticket · '+this.displayId(t),summary:t.summary,kind:'created'});}
+  notifyCreatedTodo(td){this.showPush({id:(this._pid=(this._pid||0)+1),uid:null,todoId:td.id,title:'Neues ToDo',summary:td.title,kind:'created'});}
+  notifyAssignedToMe(t){this.showPush({id:(this._pid=(this._pid||0)+1),uid:t.uid,todoId:null,title:'Dir zugewiesen · '+this.displayId(t),summary:t.summary,kind:'assigned'});}
+  componentWillUnmount(){window.removeEventListener('resize',this.onResize);window.removeEventListener('keydown',this.onKey);if(this._sla)clearInterval(this._sla);if(this._reminders)clearInterval(this._reminders);if(window.visualViewport&&this.onVV)window.visualViewport.removeEventListener('resize',this.onVV);}
 
   /* ---------- toasts / undo ---------- */
   toast(msg,type){const id=(this._tid=(this._tid||0)+1);this.setState(s=>({toasts:[...s.toasts,{id,msg,type}]}));setTimeout(()=>this.setState(s=>({toasts:s.toasts.filter(t=>t.id!==id)})),3400);}
@@ -260,7 +300,8 @@ class Component extends DCLogic {
   initials(n){return (n||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();}
   fmtText(s){if(!s)return null;const h=React.createElement;const lines=s.split('\n');const out=[];lines.forEach((line,li)=>{this.parseInline(line).forEach((tok,ti)=>out.push(typeof tok==='string'?h('span',{key:li+'_'+ti},tok):tok));if(li<lines.length-1)out.push(h('br',{key:'br'+li}));});return out;}
   parseInline(line){const h=React.createElement;const out=[];const re=/(\*\*([^*]+)\*\*)|(\*([^*\n]+)\*)|(https?:\/\/[^\s]+)/g;let last=0,m,k=0;while((m=re.exec(line))!==null){if(m.index>last)out.push(line.slice(last,m.index));if(m[2]!==undefined)out.push(h('strong',{key:k++,style:{color:this.C.bodyStrong,fontWeight:400}},m[2]));else if(m[4]!==undefined)out.push(h('em',{key:k++},m[4]));else if(m[5]!==undefined)out.push(h('a',{key:k++,href:m[5],target:'_blank',rel:'noopener noreferrer'},m[5]));last=m.index+m[0].length;}if(last<line.length)out.push(line.slice(last));return out;}
-  slaState(t,kind){const limit=this.PRIORITY[t.priority][kind]*3600000;if(kind==='reaction'){const r=t.journal.find(j=>j.kind==='status'&&j.from==='new');if(r){const dt=r.ts-t.createdAt;return dt<=limit?{ok:true,txt:'eingehalten'}:{ok:false,txt:'überschritten'};}if(!this.STATUS[t.status].open)return{txt:''};const dt=Date.now()-t.createdAt;return dt<=limit?{ok:true,txt:Math.max(0,Math.round((limit-dt)/3600000))+' h übrig'}:{ok:false,txt:'überfällig'};}else{if(t.resolvedAt||!this.STATUS[t.status].open){const end=t.resolvedAt||t.closedAt||t.updatedAt;const dt=end-t.createdAt;return dt<=limit?{ok:true,txt:'eingehalten'}:{ok:false,txt:'überschritten'};}const dt=Date.now()-t.createdAt;if(dt>limit)return{ok:false,txt:'überfällig'};const left=(limit-dt)/3600000;return{ok:left>=limit*0.25/3600000,warn:left<limit*0.25/3600000,txt:Math.round(left)+' h übrig'};}}
+  fmtHoursLeft(h){if(h<1)return Math.max(1,Math.round(h*60))+' Min. übrig';return Math.round(h)+' h übrig';}
+  slaState(t,kind){const limit=this.PRIORITY[t.priority][kind]*3600000;if(kind==='reaction'){const r=t.journal.find(j=>j.kind==='status'&&j.from==='new');if(r){const dt=r.ts-t.createdAt;return dt<=limit?{ok:true,txt:'eingehalten'}:{ok:false,txt:'überschritten'};}if(!this.STATUS[t.status].open)return{txt:''};const dt=Date.now()-t.createdAt;return dt<=limit?{ok:true,txt:this.fmtHoursLeft(Math.max(0,(limit-dt)/3600000))}:{ok:false,txt:'überfällig'};}else{if(t.resolvedAt||!this.STATUS[t.status].open){const end=t.resolvedAt||t.closedAt||t.updatedAt;const dt=end-t.createdAt;return dt<=limit?{ok:true,txt:'eingehalten'}:{ok:false,txt:'überschritten'};}const dt=Date.now()-t.createdAt;if(dt>limit)return{ok:false,txt:'überfällig'};const left=(limit-dt)/3600000;return{ok:left>=limit*0.25/3600000,warn:left<limit*0.25/3600000,txt:this.fmtHoursLeft(left)};}}
 
   /* ---------- automation ---------- */
   runAutomation(db){const now=Date.now();let changed=false;db.tickets.forEach(t=>{if(t.status==='paused'&&t.pausedUntil&&t.pausedUntil<=now){t.journal.push({ts:now,author:'System',kind:'status',from:'paused',to:'in_progress',text:'Automatisch reaktiviert nach Pause.'});t.status='in_progress';t.pausedUntil=null;t.updatedAt=now;changed=true;}if(t.status==='resolved'&&t.resolvedAt){const days=(now-t.resolvedAt)/86400000;if(days>=db.settings.resolvedAutoCloseDays){t.journal.push({ts:now,author:'System',kind:'status',from:'resolved',to:'closed',text:'Automatisch geschlossen (keine Rückmeldung innerhalb '+db.settings.resolvedAutoCloseDays+' Tagen).'});t.status='closed';t.closedAt=now;t.updatedAt=now;changed=true;}}});return changed;}
@@ -272,10 +313,10 @@ class Component extends DCLogic {
   logSystem(t,author,text){t.journal.push({ts:Date.now(),author,kind:'system',text});}
 
   /* ---------- actions ---------- */
-  createTicket(data){const now=Date.now();const ui=this.state.ui;const number=this.state.db.counter+1;const uid='t'+number+'_'+now.toString(36);const affected=data.affectedUser||ui.user;const t={uid,number,type:data.type||'ticket',status:'new',summary:data.summary||'',description:data.description||'',category:data.category||this.state.db.categories[0],priority:data.priority||'medium',responsibleUser:data.responsibleUser??null,responsibleRole:data.responsibleRole??null,affectedUser:affected,assetId:data.assetId??null,createdAt:now,updatedAt:now,attachments:[],journal:[{ts:now,author:affected,kind:'system',text:'Ticket erstellt'}],solution:null,resolvedAt:null,closedAt:null,rating:null,pausedUntil:null,withdrawReason:null,reopenReason:null};if(t.responsibleUser){t.status='assigned';this.logChange(t,ui.user,'new','assigned','Direkt zugewiesen.');}this.update(next=>{next.counter=number;next.tickets.push(structuredClone(t));});this.toast('Ticket '+this.displayId(t)+' erstellt.','ok');this.go('detail',uid);return uid;}
+  createTicket(data){const now=Date.now();const ui=this.state.ui;const number=this.state.db.counter+1;const uid='t'+number+'_'+now.toString(36);const affected=data.affectedUser||ui.user;const t={uid,number,type:data.type||'ticket',status:'new',summary:data.summary||'',description:data.description||'',category:data.category||this.state.db.categories[0],priority:data.priority||'medium',responsibleUser:data.responsibleUser??null,responsibleRole:data.responsibleRole??null,affectedUser:affected,assetId:data.assetId??null,createdAt:now,updatedAt:now,attachments:[],journal:[{ts:now,author:affected,kind:'system',text:'Ticket erstellt'}],solution:null,resolvedAt:null,closedAt:null,rating:null,pausedUntil:null,withdrawReason:null,reopenReason:null};if(t.responsibleUser){t.status='assigned';this.logChange(t,ui.user,'new','assigned','Direkt zugewiesen.');}this.update(next=>{next.counter=number;next.tickets.push(structuredClone(t));});this.toast('Ticket '+this.displayId(t)+' erstellt.','ok');this.notifyCreatedTicket(t);this.go('detail',uid);return uid;}
   addComment(uid,text){this.update((n,f)=>{const t=f(uid);if(!t)return;this.logComment(t,this.state.ui.user,text);t.updatedAt=Date.now();});}
   takeOver(uid){this.update((n,f)=>{const t=f(uid);if(!t)return;t.responsibleUser=this.state.ui.user;const from=t.status;if(from==='new'||from==='assigned'){this.logChange(t,this.state.ui.user,from,'in_progress',this.state.ui.user+' hat übernommen.');t.status='in_progress';}else this.logSystem(t,this.state.ui.user,this.state.ui.user+' hat übernommen.');t.updatedAt=Date.now();});this.toast('Übernommen.','ok');}
-  assign(uid,v){this.update((n,f)=>{const t=f(uid);if(!t)return;t.responsibleUser=v.responsibleUser;t.responsibleRole=v.responsibleRole;if(t.responsibleUser&&t.status==='new'){this.logChange(t,this.state.ui.user,'new','assigned',v.note||'Zugewiesen an '+t.responsibleUser);t.status='assigned';}else this.logComment(t,this.state.ui.user,'Zuweisung: '+(t.responsibleUser||'—')+(t.responsibleRole?' / '+t.responsibleRole:'')+(v.note?'\n'+v.note:''));t.updatedAt=Date.now();});}
+  assign(uid,v){let assignedTicket=null;this.update((n,f)=>{const t=f(uid);if(!t)return;t.responsibleUser=v.responsibleUser;t.responsibleRole=v.responsibleRole;if(t.responsibleUser&&t.status==='new'){this.logChange(t,this.state.ui.user,'new','assigned',v.note||'Zugewiesen an '+t.responsibleUser);t.status='assigned';}else this.logComment(t,this.state.ui.user,'Zuweisung: '+(t.responsibleUser||'—')+(t.responsibleRole?' / '+t.responsibleRole:'')+(v.note?'\n'+v.note:''));t.updatedAt=Date.now();assignedTicket=t;});if(assignedTicket&&v.responsibleUser&&v.responsibleUser===this.state.ui.user)this.notifyAssignedToMe(assignedTicket);}
   changeStatus(uid,v){const t0=this.state.db.tickets.find(t=>t.uid===uid);const prev=t0?t0.status:null;this.update((n,f)=>{const t=f(uid);if(!t)return;if(v.status===t.status){if(v.note)this.logComment(t,this.state.ui.user,v.note);}else{this.logChange(t,this.state.ui.user,t.status,v.status,v.note);t.status=v.status;if(v.status==='resolved')t.resolvedAt=Date.now();if(v.status!=='paused')t.pausedUntil=null;}t.updatedAt=Date.now();});if(prev&&prev!==v.status)this.showUndo('Status → '+this.STATUS[v.status].label,()=>this.update((n,f)=>{const t=f(uid);if(t){this.logChange(t,'System',t.status,prev,'Rückgängig gemacht.');t.status=prev;t.updatedAt=Date.now();}}));}
   pause(uid,v){this.update((n,f)=>{const t=f(uid);if(!t)return;const days=v.days||n.settings.pauseReactivationDays;t.pausedUntil=Date.now()+days*86400000;this.logChange(t,this.state.ui.user,t.status,'paused',(v.note?v.note+'\n':'')+'Reaktivierung in '+days+ ' Tagen.');t.status='paused';t.updatedAt=Date.now();});}
   transform(uid,v){this.update((n,f)=>{const t=f(uid);if(!t)return;const from=t.type;t.type=v.type;t.journal.push({ts:Date.now(),author:this.state.ui.user,kind:'status',text:'Transformiert: '+this.TYPES[from].label+' → '+this.TYPES[v.type].label+(v.note?'\n'+v.note:'')});t.updatedAt=Date.now();});}
@@ -292,7 +333,7 @@ class Component extends DCLogic {
   addAsset(a){this.update(next=>next.assets.push({id:'A'+Date.now().toString(36),...a}));this.toast('Asset angelegt.','ok');}
   parseDateInput(v){if(!v)return null;const t=new Date(v+'T00:00:00').getTime();return isNaN(t)?null:t;}
   dateInputVal(ts){return ts?new Date(ts).toISOString().slice(0,10):'';}
-  addTodo(data){if(!data.title||!data.title.trim()){this.toast('Titel fehlt.','err');return;}this.update(next=>{if(!Array.isArray(next.todos))next.todos=[];next.todos.push({id:'D'+Date.now().toString(36),title:data.title.trim(),description:data.description||'',createdAt:Date.now(),dueAt:this.parseDateInput(data.dueAt),priority:data.priority||'medium',author:this.state.ui.user,done:false});});this.toast('ToDo hinzugefügt.','ok');}
+  addTodo(data){if(!data.title||!data.title.trim()){this.toast('Titel fehlt.','err');return;}let created=null;this.update(next=>{if(!Array.isArray(next.todos))next.todos=[];created={id:'D'+Date.now().toString(36),title:data.title.trim(),description:data.description||'',createdAt:Date.now(),dueAt:this.parseDateInput(data.dueAt),priority:data.priority||'medium',author:this.state.ui.user,done:false};next.todos.push(created);});this.toast('ToDo hinzugefügt.','ok');if(created)this.notifyCreatedTodo(created);}
   updateTodo(id,patch){this.update(next=>{const t=(next.todos||[]).find(x=>x.id===id);if(t)Object.assign(t,patch);});this.toast('ToDo gespeichert.','ok');}
   toggleTodoDone(id){this.update(next=>{const t=(next.todos||[]).find(x=>x.id===id);if(t)t.done=!t.done;});}
   deleteTodo(id){const snap=structuredClone((this.state.db.todos||[]).find(x=>x.id===id));this.update(next=>{next.todos=(next.todos||[]).filter(x=>x.id!==id);});this.showUndo('ToDo gelöscht',()=>{if(snap)this.update(next=>{if(!Array.isArray(next.todos))next.todos=[];next.todos.push(structuredClone(snap));});});}
@@ -384,7 +425,7 @@ class Component extends DCLogic {
 
   /* ---------- ICONS ---------- */
   icon(name,size,stroke){const h=React.createElement;const s=size||18;const sw=stroke||1.4;const p={width:s,height:s,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','strokeWidth':sw,'strokeLinecap':'round','strokeLinejoin':'round',style:{display:'block'}};const P=d=>h('path',{d});
-    const map={reload:[P('M21 12a9 9 0 1 1-2.64-6.36'),P('M21 3v6h-6')],search:[h('circle',{cx:11,cy:11,r:7}),P('m21 21-4.3-4.3')],menu:[P('M3 6h18'),P('M3 12h18'),P('M3 18h18')],plus:[P('M12 5v14'),P('M5 12h14')],x:[P('M18 6 6 18'),P('M6 6l12 12')],chevL:[P('m15 18-6-6 6-6')],chevR:[P('m9 18 6-6-6-6')],star:[P('M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.3l6.1-.7z')],filter:[P('M3 5h18'),P('M6 12h12'),P('M10 19h4')],check:[P('M20 6 9 17l-5-5')],clock:[h('circle',{cx:12,cy:12,r:9}),P('M12 7v5l3 2')],user:[h('circle',{cx:12,cy:8,r:4}),P('M4 21c0-4 4-6 8-6s8 2 8 6')],book:[P('M4 4h13a3 3 0 0 1 3 3v13H7a3 3 0 0 0-3 3z'),P('M4 4v16')],grid:[h('rect',{x:3,y:3,width:7,height:7,rx:0}),h('rect',{x:14,y:3,width:7,height:7,rx:0}),h('rect',{x:3,y:14,width:7,height:7,rx:0}),h('rect',{x:14,y:14,width:7,height:7,rx:0})],box:[P('M3 8l9-5 9 5v8l-9 5-9-5z'),P('M3 8l9 5 9-5'),P('M12 13v8')],gear:[h('circle',{cx:12,cy:12,r:3}),P('M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2')],home:[P('M3 11l9-8 9 8'),P('M5 10v10h14V10')],trash:[P('M4 7h16'),P('M9 7V5h6v2'),P('M6 7l1 13h10l1-13')],chart:[P('M4 20V10'),P('M10 20V4'),P('M16 20v-7'),P('M22 20H2')],arrow:[P('M5 12h14'),P('m13 6 6 6-6 6')],todo:[h('rect',{x:3,y:4,width:6,height:6,rx:1}),P('m4.5 7 1 1 2-2'),P('M12 6h9'),h('rect',{x:3,y:14,width:6,height:6,rx:1}),P('M12 17h9')]};
+    const map={reload:[P('M21 12a9 9 0 1 1-2.64-6.36'),P('M21 3v6h-6')],search:[h('circle',{cx:11,cy:11,r:7}),P('m21 21-4.3-4.3')],menu:[P('M3 6h18'),P('M3 12h18'),P('M3 18h18')],plus:[P('M12 5v14'),P('M5 12h14')],x:[P('M18 6 6 18'),P('M6 6l12 12')],chevL:[P('m15 18-6-6 6-6')],chevR:[P('m9 18 6-6-6-6')],star:[P('M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.3l6.1-.7z')],filter:[P('M3 5h18'),P('M6 12h12'),P('M10 19h4')],check:[P('M20 6 9 17l-5-5')],clock:[h('circle',{cx:12,cy:12,r:9}),P('M12 7v5l3 2')],user:[h('circle',{cx:12,cy:8,r:4}),P('M4 21c0-4 4-6 8-6s8 2 8 6')],book:[P('M4 4h13a3 3 0 0 1 3 3v13H7a3 3 0 0 0-3 3z'),P('M4 4v16')],grid:[h('rect',{x:3,y:3,width:7,height:7,rx:0}),h('rect',{x:14,y:3,width:7,height:7,rx:0}),h('rect',{x:3,y:14,width:7,height:7,rx:0}),h('rect',{x:14,y:14,width:7,height:7,rx:0})],box:[P('M3 8l9-5 9 5v8l-9 5-9-5z'),P('M3 8l9 5 9-5'),P('M12 13v8')],gear:[h('circle',{cx:12,cy:12,r:3}),P('M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2')],home:[P('M3 11l9-8 9 8'),P('M5 10v10h14V10')],trash:[P('M4 7h16'),P('M9 7V5h6v2'),P('M6 7l1 13h10l1-13')],chart:[P('M4 20V10'),P('M10 20V4'),P('M16 20v-7'),P('M22 20H2')],arrow:[P('M5 12h14'),P('m13 6 6 6-6 6')],todo:[h('rect',{x:3,y:4,width:6,height:6,rx:1}),P('m4.5 7 1 1 2-2'),P('M12 6h9'),h('rect',{x:3,y:14,width:6,height:6,rx:1}),P('M12 17h9')],logo:[P('M12 1.6 22.4 12 12 22.4 1.6 12z'),P('M8.4 8.2v7.6'),P('M15.6 8.2v7.6'),P('M8.4 12h7.2')]};
     return h('svg',p,...(map[name]||[]));}
 
   /* ---------- small render helpers ---------- */
@@ -429,6 +470,7 @@ class Component extends DCLogic {
       searchValue:ui.searchQuery||'',
       onSearch:e=>{const q=e.target.value;this.setUi({searchQuery:q,view:q?'search':(ui.view==='search'?'dashboard':ui.view)});},
       iconMenu:this.icon('menu',20),iconSearch:this.icon('search',17),iconX:this.icon('x',20),iconPlus:this.icon('plus',16),
+      logoMark:this.icon('logo',20,1.3),
       screen:h('div',{key:this.state.ui.view+(this.state.ui.current||''),className:'lx-view'},this.renderScreen()),
       overlays:this.renderOverlays(),
       onReload:()=>this.onReload(),reloadTitle,
@@ -482,12 +524,14 @@ class Component extends DCLogic {
     const undo=this.state.undo?h('div',{key:this.state.undo.id,style:{position:'fixed',left:'50%',transform:'translateX(-50%)',bottom:this.state.mobile?'96px':'36px',zIndex:65,display:'flex',alignItems:'center',gap:'18px',padding:'12px 12px 12px 22px',background:C.elev,color:C.ink,border:'1px solid '+C.lineStrong,fontFamily:C.mono,fontSize:'11px',letterSpacing:'1px',textTransform:'uppercase',animation:'hd-rise .2s ease'}},
       h('span',null,this.state.undo.label),
       this.Btn('Rückgängig',()=>this.doUndo(),'primary',{sm:true})):null;
+    const pushColor=k=>({overdue:C.danger,'due-now':C.danger,'due-soon':C.warning,assigned:C.success,created:this.accent}[k]||this.accent);
+    const pushIconName=k=>({overdue:'clock','due-now':'clock','due-soon':'clock',assigned:'user',created:'plus'}[k]||'reload');
     const pushes=(this.state.pushes.length)?h('div',{style:this.state.mobile?{position:'fixed',top:'12px',left:'12px',right:'12px',zIndex:90,display:'flex',flexDirection:'column',gap:'10px'}:{position:'fixed',top:'86px',right:'20px',width:'360px',maxWidth:'calc(100vw - 40px)',zIndex:90,display:'flex',flexDirection:'column',gap:'10px'}},
-      this.state.pushes.map(p=>h('div',{key:p.id,onClick:()=>this.openPush(p),style:{display:'flex',gap:'12px',padding:'14px 16px',background:'rgba(20,20,20,.92)',backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',border:'1px solid '+C.lineStrong,borderLeft:'3px solid '+(p.kind==='overdue'?C.danger:this.accent),cursor:'pointer',animation:'hd-pushin .4s cubic-bezier(.2,.9,.25,1) both'}},
-        h('span',{style:{display:'flex',flex:'none',color:p.kind==='overdue'?C.danger:this.accent,marginTop:'1px'}},this.icon(p.kind==='overdue'?'clock':'reload',18,1.6)),
+      this.state.pushes.map(p=>h('div',{key:p.id,onClick:()=>this.openPush(p),style:{display:'flex',gap:'12px',padding:'14px 16px',background:'rgba(20,20,20,.92)',backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',border:'1px solid '+C.lineStrong,borderLeft:'3px solid '+pushColor(p.kind),cursor:'pointer',animation:'hd-pushin .4s cubic-bezier(.2,.9,.25,1) both'}},
+        h('span',{style:{display:'flex',flex:'none',color:pushColor(p.kind),marginTop:'1px'}},this.icon(pushIconName(p.kind),18,1.6)),
         h('div',{style:{flex:1,minWidth:0}},
           h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px',marginBottom:'4px'}},h('span',{style:{fontFamily:C.mono,fontSize:'9px',letterSpacing:'2px',textTransform:'uppercase',color:C.muted}},'HeimDesk'),h('span',{style:{fontFamily:C.mono,fontSize:'9px',letterSpacing:'1px',color:C.mutedSoft}},'jetzt')),
-          h('div',{style:{fontFamily:C.mono,fontSize:'11px',letterSpacing:'.5px',textTransform:'uppercase',color:p.kind==='overdue'?C.danger:this.accent,marginBottom:'3px'}},p.title),
+          h('div',{style:{fontFamily:C.mono,fontSize:'11px',letterSpacing:'.5px',textTransform:'uppercase',color:pushColor(p.kind),marginBottom:'3px'}},p.title),
           h('div',{style:{fontFamily:C.serif,fontSize:'16px',lineHeight:1.3,color:C.bodyStrong,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},p.summary)),
         h('button',{onClick:e=>{e.stopPropagation();this.dismissPush(p.id);},style:{flex:'none',width:'26px',height:'26px',border:'none',background:'transparent',color:C.mutedSoft,display:'flex',alignItems:'center',justifyContent:'center'}},this.icon('x',15,1.8))))):null;
     return h(React.Fragment,null,toasts,undo,pushes,this.renderModal());}
@@ -570,8 +614,12 @@ class Component extends DCLogic {
         ok=()=>{navigator.clipboard&&navigator.clipboard.writeText(this.SUPABASE_SQL());this.toast('SQL kopiert.','ok');this.closeModal();};break;
       default:return null;}
     const wide=['sync','sql','serviceNew','kbNew','todoNew','todoEdit'].includes(m.kind);
-    return h('div',{onClick:()=>this.closeModal(),style:{position:'fixed',inset:0,zIndex:80,background:'rgba(0,0,0,.78)',display:'flex',alignItems:this.state.mobile?'flex-end':'center',justifyContent:'center',padding:this.state.mobile?'0':'24px',animation:'hd-fade .16s ease'}},
-      h('div',{onClick:e=>e.stopPropagation(),className:'hd-sc',style:{width:'100%',maxWidth:wide?'580px':'460px',maxHeight:'90vh',overflow:'auto',background:C.card,border:'1px solid '+C.lineStrong,padding:'28px',animation:'hd-rise .22s ease'}},
+    // Gegen die auf Mobilgeräten geöffnete Bildschirmtastatur: window.innerHeight/100vh schrumpfen dabei
+    // i. d. R. NICHT mit, der sichtbare Bereich (visualViewport) aber schon - daher hierauf verankern,
+    // sonst verschwindet die Fußzeile (Speichern/Anlegen) hinter der Tastatur.
+    const vh=this.state.vvh||(typeof window!=='undefined'?window.innerHeight:800);
+    return h('div',{onClick:()=>this.closeModal(),style:{position:'fixed',top:0,left:0,right:0,height:vh+'px',zIndex:80,background:'rgba(0,0,0,.78)',display:'flex',alignItems:this.state.mobile?'flex-end':'center',justifyContent:'center',padding:this.state.mobile?'0':'24px',animation:'hd-fade .16s ease'}},
+      h('div',{onClick:e=>e.stopPropagation(),className:'hd-sc',style:{width:'100%',maxWidth:wide?'580px':'460px',maxHeight:Math.round(vh*0.9)+'px',overflow:'auto',background:C.card,border:'1px solid '+C.lineStrong,padding:'28px',animation:'hd-rise .22s ease'}},
         h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'24px',paddingBottom:'16px',borderBottom:'1px solid '+C.line}},h('h2',{style:{margin:0,fontFamily:C.disp,fontSize:'26px',fontWeight:400,letterSpacing:'1px',textTransform:'uppercase',color:C.ink}},title),h('button',{onClick:()=>this.closeModal(),style:{width:'38px',height:'38px',borderRadius:'9999px',border:'1px solid '+C.lineStrong,background:'transparent',color:C.muted,display:'flex',alignItems:'center',justifyContent:'center'}},this.icon('x',18))),
         body,
         h('div',{style:{display:'flex',justifyContent:'flex-end',gap:'12px',marginTop:'28px'}},this.Btn('Abbrechen',()=>this.closeModal(),'ghost'),this.Btn(okLabel,ok,okVariant))));}
@@ -820,8 +868,15 @@ class Component extends DCLogic {
     const toggle=(label,key)=>h('button',{onClick:()=>this.setSetting(key,!S[key]),style:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',border:'1px solid '+C.line,background:C.soft,cursor:'pointer'}},h('span',{style:{fontFamily:C.serif,fontSize:'17px',color:C.body}},label),h('span',{style:{width:'46px',height:'26px',borderRadius:'9999px',border:'1px solid '+(S[key]?C.link:C.lineStrong),background:'transparent',position:'relative',flex:'none'}},h('span',{style:{position:'absolute',top:'3px',left:S[key]?'22px':'3px',width:'18px',height:'18px',borderRadius:'9999px',background:S[key]?C.link:C.muted,transition:'left .15s'}})));
     const listEditor=(label,key)=>this.Card(h('div',null,h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'16px'}},this.Eyebrow(label),h('button',{onClick:()=>this.openModal('listAdd',{listKey:key,label}),style:{width:'34px',height:'34px',borderRadius:'9999px',border:'1px solid '+C.lineStrong,background:'transparent',color:C.ink,display:'flex',alignItems:'center',justifyContent:'center'}},this.icon('plus',15))),
       h('div',{style:{display:'flex',flexWrap:'wrap',gap:'8px'}},db[key].map((v,i)=>h('span',{key:i,style:{display:'inline-flex',alignItems:'center',gap:'8px',height:'32px',padding:'0 8px 0 12px',border:'1px solid '+C.lineStrong,fontFamily:C.mono,fontSize:'11px',letterSpacing:'.5px',color:C.body}},v,h('button',{onClick:()=>this.removeFromList(key,i),style:{width:'20px',height:'20px',border:'none',background:'transparent',color:C.mutedSoft,display:'flex',alignItems:'center',justifyContent:'center'}},this.icon('x',12,2)))))));
+    const userCard=this.Card(h('div',null,
+      this.Eyebrow('Angemeldet als',{marginBottom:'16px'}),
+      h('div',{style:{display:'grid',gridTemplateColumns:this.state.mobile?'1fr':'1fr 1fr',gap:'16px',marginBottom:'14px'}},
+        this.Field('Nutzer',this.Sel(this.state.ui.user,v=>{this.setUi({user:v});this.toast('Angemeldet als '+v+'.','ok');},db.users.map(u=>({value:u,label:u})))),
+        this.Field('Rolle',this.Sel(this.state.ui.role,v=>this.setUi({role:v}),[{value:'agent',label:'Agent'},{value:'user',label:'Nutzer'}]))),
+      h('p',{style:{margin:0,fontFamily:C.serif,fontSize:'15px',lineHeight:1.5,color:C.muted}},'Als Agent siehst du alle Vorgänge; als Nutzer nur deine eigenen gemeldeten oder dir zugewiesenen. Begrüßung und Sichtbarkeit passen sich sofort an.')));
     return h('div',null,this.pageHead('Setup','Konfiguration & Daten'),
       h('div',{style:{display:'grid',gap:'16px'}},
+        userCard,
         this.Card(h('div',null,
           h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px',flexWrap:'wrap',gap:'10px'}},this.Eyebrow('Cloud-Sync'),h('span',{style:{display:'inline-flex',alignItems:'center',gap:'8px',fontFamily:C.mono,fontSize:'11px',letterSpacing:'1px',textTransform:'uppercase',color:syncMeta[1]}},h('span',{style:{width:'8px',height:'8px',borderRadius:'9999px',background:syncMeta[1]}}),syncMeta[0])),
           h('p',{style:{margin:'8px 0 20px',fontFamily:C.serif,fontSize:'17px',lineHeight:1.55,color:C.muted}},sync.configured?'Deine Daten werden über einen verschlüsselten Sync-Code mit deiner Supabase-Instanz abgeglichen. Der Reload-Button unten rechts holt jederzeit die neuesten Cloud-Daten.':'Verbinde deine eigene Supabase-Instanz, um Daten geräteübergreifend zu synchronisieren.'),
