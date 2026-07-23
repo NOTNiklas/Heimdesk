@@ -245,7 +245,7 @@ class Component extends DCLogic {
   constructor(p){super(p);this.state.db=this._loadDB();this.state.ui=this._loadUI();
     const cfg=this._loadSyncCfg();this.cfg=cfg;this.meta=this._loadSyncMeta();this.dirty=false;this.pushTimer=null;
     this.state.sync={configured:!!cfg,status:cfg?'idle':'disabled',lastAt:null,error:null};
-    this.state.aiCfg=this._loadAiCfg();this._aiRecog=null;this._aiWakeRecog=null;this._aiAbort=null;}
+    this.state.aiCfg=this._loadAiCfg();this._aiRecog=null;this._aiWakeRecog=null;this._aiAbort=null;this._aiVoiceTurn=false;}
 
   componentDidMount(){
     this.onResize=()=>{const m=window.innerWidth<820;if(m!==this.state.mobile){this.setState({mobile:m,navOpen:false});if(m)setTimeout(()=>this.notifyExpiring(),900);}};
@@ -594,6 +594,7 @@ class Component extends DCLogic {
       }}
     return{blocks:blocks.filter(Boolean).map(b=>b.type==='tool_use'?{type:'tool_use',id:b.id,name:b.name,input:(()=>{try{return JSON.parse(b.inputJson||'{}');}catch(e){return{};}})()}:{type:'text',text:b.text}),stopReason};}
   aiPushDisplay(msg){this.setState(s=>({aiConvo:[...s.aiConvo,{ts:Date.now(),...msg}]}));}
+  aiSendTyped(userText){this._aiVoiceTurn=false;this.aiSend(userText);}
   async aiSend(userText){if(!userText||!userText.trim())return;
     if(!this.cfg){this.aiPushDisplay({role:'system',text:'Bitte zuerst Cloud-Sync in den Einstellungen einrichten (Aphelios nutzt dieselbe Supabase-Verbindung).'});return;}
     userText=userText.trim();this._aiRaw=this._aiRaw||[];
@@ -612,7 +613,7 @@ class Component extends DCLogic {
         const toolCalls=blocks.filter(b=>b.type==='tool_use');
         if(textPart)this.aiPushDisplay({role:'assistant',text:textPart,citations:retrieved.map(r=>r.title)});
         this.setState({aiStreamText:''});
-        if(!toolCalls.length){this.setState({aiThinking:false});this.aiSpeak(textPart);this.aiPersistConvo();return;}
+        if(!toolCalls.length){this.setState({aiThinking:false});if(this._aiVoiceTurn)this.aiSpeak(textPart);this.aiPersistConvo();return;}
         const destructive=toolCalls.find(tc=>this.aiIsDestructive(tc.name));
         if(destructive){this.setState({aiThinking:false,aiPendingConfirm:{toolUseId:destructive.id,name:destructive.name,input:destructive.input,otherCalls:toolCalls.filter(tc=>tc!==destructive)}});return;}
         const results=toolCalls.map(tc=>{const r=this.aiExecuteTool(tc.name,tc.input);return{type:'tool_result',tool_use_id:tc.id,content:JSON.stringify(r)};});
@@ -689,9 +690,9 @@ class Component extends DCLogic {
       if(errMsg){this.aiPushDisplay({role:'system',text:'Fehler: '+errMsg});this.setState({aiInput:'',aiVoice:this.state.aiCfg.wakeWordEnabled?'wake':'idle'});if(this.state.aiCfg.wakeWordEnabled)this.aiStartWakeListening();return;}
       if(!text){this.setState({aiVoice:this.state.aiCfg.wakeWordEnabled?'wake':'idle'});if(this.state.aiCfg.wakeWordEnabled)this.aiStartWakeListening();return;}
       if(/^(danke\s*aphelios|stop|beenden|gespräch\s*beenden|schlafmodus)[.!]?$/i.test(text.trim())){
-        this.aiPushDisplay({role:'system',text:'Bis bald! 👋'});this.setState({aiInput:'',aiVoice:this.state.aiCfg.wakeWordEnabled?'wake':'idle'});
+        this.aiPushDisplay({role:'system',text:'Bis bald! 👋'});this.aiSpeak('Bis bald!');this.setState({aiInput:'',aiVoice:this.state.aiCfg.wakeWordEnabled?'wake':'idle'});
         if(this.state.aiCfg.wakeWordEnabled)this.aiStartWakeListening();return;}
-      await this.aiSend(text);
+      this._aiVoiceTurn=true;await this.aiSend(text);
       if(this.state.aiCfg.voiceEnabled&&!this.state.aiPendingConfirm)this.aiStartCommandCapture();};
     this._aiCmdRecog=rec;this.setState({aiVoice:'listening'});try{rec.start();}catch(e){}}
   aiStopCommandCapture(){if(this._aiCmdRecog){try{this._aiCmdRecog.stop();}catch(e){}this._aiCmdRecog=null;}}
@@ -967,11 +968,11 @@ class Component extends DCLogic {
         h('div',{style:{padding:'12px 14px 14px',borderTop:'1px solid rgba(255,255,255,.08)',display:'flex',gap:'8px',alignItems:'flex-end'}},
           this.state.aiThinking?this.Btn('Stop',()=>this.aiStop(),'danger',{sm:true}):null,
           h('textarea',{value:this.state.aiInput,onChange:e=>this.setState({aiInput:e.target.value}),
-            onKeyDown:e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(this.state.aiInput.trim()&&!this.state.aiThinking)this.aiSend(this.state.aiInput);}},
+            onKeyDown:e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(this.state.aiInput.trim()&&!this.state.aiThinking)this.aiSendTyped(this.state.aiInput);}},
             placeholder:'Nachricht an Aphelios…',rows:1,disabled:this.state.aiThinking,
             style:{flex:1,resize:'none',minHeight:'40px',maxHeight:'120px',padding:'10px 12px',background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.14)',borderRadius:'10px',color:'#fff',fontFamily:C.serif,fontSize:'14.5px',outline:'none'}}),
           this.aiSpeechSupported()?h('button',{onClick:()=>{if(this._aiCmdRecog)this.aiStopCommandCapture();else this.aiStartCommandCapture();},title:'Sprechen',className:this.state.aiVoice==='listening'?'ai-mic-active':'',style:{flex:'none',width:'40px',height:'40px',borderRadius:'9999px',border:'1px solid rgba(255,255,255,.18)',background:this.state.aiVoice==='listening'?'rgba(192,85,63,.25)':'transparent',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}},this.icon('user',16,1.6)):null,
-          h('button',{onClick:()=>{if(this.state.aiInput.trim()&&!this.state.aiThinking)this.aiSend(this.state.aiInput);},disabled:this.state.aiThinking||!this.state.aiInput.trim(),title:'Senden',style:{flex:'none',width:'40px',height:'40px',borderRadius:'9999px',border:'1px solid #fff',background:'#fff',color:'#000',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',opacity:(this.state.aiThinking||!this.state.aiInput.trim())?.4:1}},this.icon('arrow',16,1.8)))));}
+          h('button',{onClick:()=>{if(this.state.aiInput.trim()&&!this.state.aiThinking)this.aiSendTyped(this.state.aiInput);},disabled:this.state.aiThinking||!this.state.aiInput.trim(),title:'Senden',style:{flex:'none',width:'40px',height:'40px',borderRadius:'9999px',border:'1px solid #fff',background:'#fff',color:'#000',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',opacity:(this.state.aiThinking||!this.state.aiInput.trim())?.4:1}},this.icon('arrow',16,1.8)))));}
 
   renderModal(){const m=this.state.modal;if(!m)return null;const h=React.createElement,C=this.C,mf=this.state.mf,db=this.state.db;
     const t=m.uid?db.tickets.find(x=>x.uid===m.uid):null;let title='',body=null,ok=()=>{},okLabel='Speichern',okVariant='primary';
