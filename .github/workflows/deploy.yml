@@ -19,22 +19,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
       - name: Configure Pages
-        id: pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
-      - run: npm ci
-      - name: Build
-        run: npm run build
-        env:
-          BASE_PATH: ${{ steps.pages.outputs.base_path }}
+      - name: Statische Seite zusammenstellen
+        run: |
+          mkdir -p _site
+          cp index.html            _site/index.html
+          cp support.js            _site/support.js
+          cp manifest.webmanifest  _site/manifest.webmanifest
+          cp sw.js                 _site/sw.js
+          cp -r _ds                _site/_ds
+          cp -r icons              _site/icons
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: _site
 
   deploy:
     needs: build

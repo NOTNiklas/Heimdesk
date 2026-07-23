@@ -1,20 +1,33 @@
 # HeimDesk — Service Desk
 
-Clientseitiger Service-Desk (React + Vite + TypeScript). Tickets werden lokal
-im `localStorage` gehalten; optional lässt sich die App als PWA installieren und
-über Supabase geräteübergreifend synchronisieren.
+Clientseitiger Service-Desk. Tickets werden lokal im `localStorage` gehalten;
+die App lässt sich als PWA installieren und über Supabase geräteübergreifend
+synchronisieren.
 
-## Entwicklung
+## Live-Seite (Deployment)
+
+Die veröffentlichte Startseite ist die **Luxury-Variante** (`index.html` +
+`_ds/` + `support.js`) — eine eigenständige, funktionsgleiche Oberfläche
+(inkl. Löschen und Cloud-Sync), die React zur Laufzeit von einem CDN lädt.
+Der Deploy nach GitHub Pages läuft rein statisch über
+`.github/workflows/deploy.yml` (kein Build-Schritt). Ergänzt wird ein
+PWA-Layer (`manifest.webmanifest`, `sw.js`, `icons/`), damit die Seite
+installierbar und nach dem ersten Laden offline nutzbar ist.
+
+> Voraussetzung: In den Repo-Einstellungen muss **Settings → Pages → Source**
+> auf **GitHub Actions** stehen.
+
+## React-/Vite-Variante (Quellcode)
+
+Unter `src/` liegt weiterhin die ursprüngliche React-+-Vite-+-TypeScript-Fassung
+derselben App. Sie wird aktuell **nicht** deployt, bleibt aber als Referenz und
+Entwicklungsbasis erhalten:
 
 ```bash
 npm install
 npm run dev      # http://localhost:4602
 npm run build    # Typecheck + Produktions-Build nach dist/
 ```
-
-Der Deploy nach GitHub Pages läuft automatisch über
-`.github/workflows/deploy.yml` (Source in den Repo-Einstellungen muss auf
-**GitHub Actions** stehen).
 
 ## Als App aufs Handy (PWA)
 
