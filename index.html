@@ -43,15 +43,37 @@
   @keyframes hd-pulse{0%,100%{opacity:.55}50%{opacity:1}}
   @keyframes hd-pushin{from{opacity:0;transform:translateY(-120%)}to{opacity:1;transform:none}}
   .lx-view{animation:hd-viewin .42s cubic-bezier(.2,.75,.25,1) both}
-  .lx-btn{transition:background .2s cubic-bezier(.2,.75,.25,1),color .2s,border-color .2s,transform .12s cubic-bezier(.3,1.4,.5,1),letter-spacing .2s}
-  .lx-btn:hover{background:rgba(255,255,255,.07);color:#fff;letter-spacing:2.6px}
+  .lx-btn{transition:background .2s cubic-bezier(.2,.75,.25,1),color .2s,border-color .2s,transform .16s cubic-bezier(.3,1.4,.5,1),letter-spacing .2s,box-shadow .2s ease}
+  .lx-btn:hover{background:rgba(255,255,255,.07);color:#fff;letter-spacing:2.6px;transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,0,0,.35)}
   .lx-btn:active{transform:scale(.94)}
-  .lx-row{transition:background .18s,padding-left .18s,color .18s}
-  .lx-row:hover{background:#0d0d0d}
+  .lx-row{transition:background .18s cubic-bezier(.2,.75,.25,1),transform .18s cubic-bezier(.2,.75,.25,1),color .18s}
+  .lx-row:hover{background:#0d0d0d !important;transform:translateX(6px)}
+  /* Ticket-Zeilen/-Karten laufen zusätzlich über eine hd-stagger-Eintritts­animation, die den transform-Wert per fill-mode dauerhaft belegt -
+     daher hier stattdessen ein Slide über padding-left (per CSS-Variable, konfliktfrei) */
+  .lx-row-grid{transition:background .18s cubic-bezier(.2,.75,.25,1),padding-left .18s cubic-bezier(.2,.75,.25,1)}
+  .lx-row-grid:hover{padding-left:calc(var(--pl, 20px) + 6px) !important}
+  .lx-card-row{transition:background .18s cubic-bezier(.2,.75,.25,1),padding-left .18s cubic-bezier(.2,.75,.25,1),border-color .18s ease}
+  .lx-card-row:hover{background:#0d0d0d !important;padding-left:calc(var(--pl, 18px) + 6px) !important}
   .lx-skel{background:linear-gradient(90deg,#141414 0%,#1f1f1f 24%,#141414 48%);background-size:920px 100%;animation:hd-shimmer 1.25s linear infinite}
-  .lx-fab{transition:transform .16s cubic-bezier(.3,1.4,.5,1),border-color .2s,color .2s}
-  .lx-fab:hover{transform:scale(1.08) rotate(-8deg)}
+  .lx-fab{transition:transform .16s cubic-bezier(.3,1.4,.5,1),border-color .2s,color .2s,box-shadow .2s ease}
+  .lx-fab:hover{transform:scale(1.08) rotate(-8deg);box-shadow:0 0 0 6px rgba(255,255,255,.05)}
   .lx-fab:active{transform:scale(.9)}
+  .lx-spin{transition:transform .6s cubic-bezier(.4,0,.2,1)}
+  /* Top-Nav (Desktop): sanft einschiebende Unterstreichung + Aufhellen beim Hover */
+  .lx-nav-btn{position:relative;transition:color .18s ease,letter-spacing .18s ease}
+  .lx-nav-btn::after{content:'';position:absolute;left:2px;right:2px;bottom:-1px;height:1px;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform .3s cubic-bezier(.4,0,.2,1)}
+  .lx-nav-btn:hover{color:#ffffff !important;letter-spacing:2.4px}
+  .lx-nav-btn:hover::after{transform:scaleX(1)}
+  /* Nav-Drawer (Mobile): leichtes Aufhellen + Slide nach rechts */
+  .lx-nav-drawer-btn{transition:background .18s ease,padding-left .18s cubic-bezier(.2,.75,.25,1)}
+  .lx-nav-drawer-btn:hover{background:#161616 !important;padding-left:16px !important}
+  /* Suche: sanftes Aufweiten + Glow beim Fokussieren (Desktop) */
+  .lx-search{transition:width .3s cubic-bezier(.4,0,.2,1),box-shadow .2s ease,border-color .2s ease}
+  .lx-search:focus{width:270px !important;box-shadow:0 1px 0 0 #ffffff;border-color:#ffffff !important;outline:none}
+  .lx-search-wrap:focus-within .lx-search-icon{color:#ffffff !important}
+  .lx-search-icon{transition:color .2s ease}
+  .lx-search-mobile{transition:box-shadow .2s ease,border-color .2s ease}
+  .lx-search-mobile:focus{box-shadow:0 1px 0 0 #ffffff;border-color:#ffffff !important;outline:none}
   .hd-sc{scrollbar-width:thin;scrollbar-color:#3a3a3a transparent}
   .hd-sc::-webkit-scrollbar{height:9px;width:9px}
   .hd-sc::-webkit-scrollbar-thumb{background:#3a3a3a}
@@ -78,7 +100,7 @@
     </header>
     <sc-if value="{{ searchOpen }}" hint-placeholder-val="{{ false }}">
       <div style="position:sticky;top:60px;z-index:39;padding:12px 16px;background:#000;border-bottom:1px solid #262626">
-        <input value="{{ searchValue }}" onInput="{{ onSearch }}" placeholder="Tickets & Wissen durchsuchen…" autofocus style="width:100%;height:44px;padding:0 0 6px;border:none;border-bottom:1px solid #3a3a3a;background:transparent;color:#fff;font-family:'Cormorant Garamond',serif;font-size:18px;outline:none"/>
+        <input class="lx-search-mobile" value="{{ searchValue }}" onInput="{{ onSearch }}" placeholder="Tickets & Wissen durchsuchen…" autofocus style="width:100%;height:44px;padding:0 0 6px;border:none;border-bottom:1px solid #3a3a3a;background:transparent;color:#fff;font-family:'Cormorant Garamond',serif;font-size:18px;outline:none"/>
       </div>
     </sc-if>
   </sc-if>
@@ -90,8 +112,8 @@
           <div style="display:flex;align-items:baseline;gap:3px;font-family:'Saira Condensed',sans-serif;font-size:21px;letter-spacing:4px;text-transform:uppercase;color:#fff">HEIM<span style="color:#666">DESK</span></div>
           <button onClick="{{ closeNav }}" aria-label="Schließen" style="display:flex;width:36px;height:36px;align-items:center;justify-content:center;border:none;background:none;color:#999">{{ iconX }}</button>
         </div>
-        <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="6">
-          <button onClick="{{ n.onClick }}" style="{{ n.drawerStyle }}"><span style="display:flex;width:20px">{{ n.icon }}</span>{{ n.label }}</button>
+        <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="7">
+          <button class="lx-nav-drawer-btn" onClick="{{ n.onClick }}" style="{{ n.drawerStyle }}"><span style="display:flex;width:20px">{{ n.icon }}</span>{{ n.label }}</button>
         </sc-for>
         <div style="height:1px;background:#262626;margin:12px 4px"></div>
         <button onClick="{{ onCreate }}" class="lx-btn" style="display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border:1px solid #fff;border-radius:9999px;background:transparent;color:#fff;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase">{{ iconPlus }} Neues Ticket</button>
@@ -111,14 +133,14 @@
     <header style="position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:32px;height:72px;padding:0 40px;background:#000;border-bottom:1px solid #262626">
       <div style="display:flex;align-items:baseline;gap:3px;font-family:'Saira Condensed',sans-serif;font-size:22px;letter-spacing:5px;text-transform:uppercase;color:#fff;margin-right:8px">HEIM<span style="color:#666">DESK</span></div>
       <nav style="display:flex;align-items:center;gap:6px">
-        <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="6">
-          <button onClick="{{ n.onClick }}" style="{{ n.topStyle }}">{{ n.label }}</button>
+        <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="7">
+          <button class="lx-nav-btn" onClick="{{ n.onClick }}" style="{{ n.topStyle }}">{{ n.label }}</button>
         </sc-for>
       </nav>
       <div style="flex:1"></div>
-      <div style="position:relative;display:flex;align-items:center">
-        <span style="position:absolute;left:2px;display:flex;pointer-events:none;color:#666">{{ iconSearch }}</span>
-        <input value="{{ searchValue }}" onInput="{{ onSearch }}" placeholder="SUCHEN" style="width:190px;height:40px;padding:0 0 4px 30px;border:none;border-bottom:1px solid #3a3a3a;background:transparent;color:#fff;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase;outline:none"/>
+      <div class="lx-search-wrap" style="position:relative;display:flex;align-items:center">
+        <span class="lx-search-icon" style="position:absolute;left:2px;display:flex;pointer-events:none;color:#666">{{ iconSearch }}</span>
+        <input class="lx-search" value="{{ searchValue }}" onInput="{{ onSearch }}" placeholder="SUCHEN" style="width:190px;height:40px;padding:0 0 4px 30px;border:none;border-bottom:1px solid #3a3a3a;background:transparent;color:#fff;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase;outline:none"/>
       </div>
       <button onClick="{{ onCreate }}" class="lx-btn" style="display:flex;align-items:center;gap:8px;height:42px;padding:0 26px;border:1px solid #fff;border-radius:9999px;background:transparent;color:#fff;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase">{{ iconPlus }} Ticket</button>
       <button onClick="{{ toggleRole }}" title="Rolle wechseln" class="lx-btn" style="display:flex;align-items:center;gap:10px;height:42px;padding:0 8px 0 8px;border:1px solid #3a3a3a;border-radius:9999px;background:transparent">
@@ -150,14 +172,15 @@ class Component extends DCLogic {
   STATUS_ORDER=['new','in_progress','assigned','paused','resolved','closed'];
   TYPES={ticket:{label:'Ticket',prefix:'TIC'},incident:{label:'Incident',prefix:'INC'},service_request:{label:'Service Request',prefix:'SR'},problem:{label:'Problem',prefix:'PRB'},task:{label:'Task',prefix:'TSK'},change:{label:'Change',prefix:'CHG'}};
   TYPE_ORDER=['ticket','incident','service_request','problem','task','change'];
-  PRIORITY={low:{label:'Niedrig',reaction:24,resolution:72,rank:1,dot:'#666666'},medium:{label:'Mittel',reaction:8,resolution:24,rank:2,dot:'#999999'},high:{label:'Hoch',reaction:4,resolution:8,rank:3,dot:'#d4a017'},critical:{label:'Kritisch',reaction:1,resolution:4,rank:4,dot:'#c3d9f3'}};
+  PRIORITY={low:{label:'Niedrig',reaction:24,resolution:72,rank:1,dot:'#666666'},medium:{label:'Mittel',reaction:8,resolution:24,rank:2,dot:'#999999'},high:{label:'Hoch',reaction:4,resolution:8,rank:3,dot:this.C.warning},critical:{label:'Kritisch',reaction:1,resolution:4,rank:4,dot:this.C.danger}};
   PRIORITY_ORDER=['low','medium','high','critical'];
   TRANSFORM={ticket:['incident','service_request','problem','change','task'],incident:['problem','change','task','service_request'],service_request:['task','change','incident'],problem:['change','task','incident'],task:['incident','change'],change:['task','problem']};
 
-  state={db:null,ui:null,toasts:[],sync:{configured:false,status:'disabled',lastAt:null,error:null},modal:null,mf:{},undo:null,mobile:false,navOpen:false,searchOpen:false,reloading:false,lastReload:null,det:{comment:''},listLoading:true,viewLoading:false,pushes:[]};
+  state={db:null,ui:null,toasts:[],sync:{configured:false,status:'disabled',lastAt:null,error:null},modal:null,mf:{},undo:null,mobile:false,navOpen:false,searchOpen:false,reloading:false,lastReload:null,det:{comment:''},listLoading:true,viewLoading:false,pushes:[],spin:0};
 
   /* ---------- load / persist ---------- */
-  _loadDB(){try{const r=localStorage.getItem(this.DB_KEY);if(r){const d=JSON.parse(r);if(d&&d.tickets)return d;}}catch(e){}return this.seed(Date.now());}
+  migrateDB(d){if(d&&!Array.isArray(d.todos))d.todos=[];return d;}
+  _loadDB(){try{const r=localStorage.getItem(this.DB_KEY);if(r){const d=JSON.parse(r);if(d&&d.tickets)return this.migrateDB(d);}}catch(e){}return this.seed(Date.now());}
   _loadUI(){const def={view:'dashboard',role:'agent',user:'Alex',filters:{},quick:null,sort:{key:'createdAt',dir:-1},remember:true,searchQuery:'',createPrefill:null};try{const r=localStorage.getItem(this.UI_KEY);if(r){const u=JSON.parse(r);if(u&&u.view)return {...def,...u};}}catch(e){}return def;}
   persistDB(db){try{localStorage.setItem(this.DB_KEY,JSON.stringify(db));}catch(e){}}
   persistUI(ui){try{localStorage.setItem(this.UI_KEY,JSON.stringify(ui));}catch(e){}}
@@ -176,12 +199,13 @@ class Component extends DCLogic {
       if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();this.setState({searchOpen:true});const el=document.querySelector('input[placeholder^="SUCHEN"],input[placeholder^="Tickets"]');if(el)el.focus();}};
     window.addEventListener('keydown',this.onKey);
     this.runStartupSync();
-    this.triggerListLoad();
+    {const n=this.selectVisible().length;this.triggerListLoad(n?Math.min(4000,Math.max(400,n*500)):0);}
     this.triggerViewLoad(this.state.ui.view);
   }
-  triggerListLoad(ms){if(this._listT)clearTimeout(this._listT);this.setState({listLoading:true});this._listT=setTimeout(()=>this.setState({listLoading:false}),ms||3000);}
-  triggerViewLoad(view){const dur={dashboard:1000,kb:2000,catalog:2000,assets:2000}[view]||0;if(this._viewT)clearTimeout(this._viewT);if(dur){this.setState({viewLoading:true});this._viewT=setTimeout(()=>this.setState({viewLoading:false}),dur);}else if(this.state.viewLoading){this.setState({viewLoading:false});}}
-  viewSkeleton(){const h=React.createElement,C=this.C;const bar=(w,ht,mt)=>h('div',{className:'lx-skel',style:{width:w,height:ht||'14px',marginTop:mt||'0',borderRadius:'3px'}});const card=(k)=>h('div',{key:k,style:{border:'1px solid '+C.line,background:C.card,padding:'22px'}},bar('40%','12px'),bar('80%','22px','14px'),bar('60%','12px','14px'));return h('div',{className:'lx-view'},h('div',{style:{marginBottom:'32px',paddingBottom:'20px',borderBottom:'1px solid '+C.line}},bar('120px','12px'),bar(this.state.mobile?'70%':'340px','44px','16px')),h('div',{style:{display:'grid',gridTemplateColumns:this.state.mobile?'1fr':'repeat(auto-fill,minmax(240px,1fr))',gap:'16px'}},[0,1,2,3,4,5].map(i=>card(i))));}
+  triggerListLoad(ms){ms=(ms===undefined)?3000:ms;if(this._listT)clearTimeout(this._listT);if(!ms){this.setState({listLoading:false});return;}this.setState({listLoading:true});this._listT=setTimeout(()=>this.setState({listLoading:false}),ms);}
+  viewItemCount(view){const db=this.state.db;switch(view){case 'dashboard':return this.selectVisible().length;case 'kb':return (db.kb||[]).length;case 'catalog':return (db.services||[]).length;case 'assets':return (db.assets||[]).length;default:return 0;}}
+  triggerViewLoad(view){const perItem={dashboard:500,kb:1000,catalog:1000,assets:1000}[view];let dur=0;if(perItem){const n=this.viewItemCount(view);dur=n?Math.min(4000,Math.max(400,n*perItem)):0;}if(this._viewT)clearTimeout(this._viewT);if(dur){this.setState({viewLoading:true});this._viewT=setTimeout(()=>this.setState({viewLoading:false}),dur);}else if(this.state.viewLoading){this.setState({viewLoading:false});}}
+  viewSkeleton(){const h=React.createElement,C=this.C;const n=Math.max(3,Math.min(8,this.viewItemCount(this.state.ui.view)||6));const bar=(w,ht,mt)=>h('div',{className:'lx-skel',style:{width:w,height:ht||'14px',marginTop:mt||'0',borderRadius:'3px'}});const card=(k)=>h('div',{key:k,style:{border:'1px solid '+C.line,background:C.card,padding:'22px',animation:'hd-stagger .4s both',animationDelay:(k*55)+'ms'}},bar('40%','12px'),bar('80%','22px','14px'),bar('60%','12px','14px'));return h('div',{className:'lx-view'},h('div',{style:{marginBottom:'32px',paddingBottom:'20px',borderBottom:'1px solid '+C.line}},bar('120px','12px'),bar(this.state.mobile?'70%':'340px','44px','16px')),h('div',{style:{display:'grid',gridTemplateColumns:this.state.mobile?'1fr':'repeat(auto-fill,minmax(240px,1fr))',gap:'16px'}},Array.from({length:n},(_,i)=>i).map(i=>card(i))));}
 
   /* ---------- mobile push notifications for expiring tickets ---------- */
   scanExpiring(){const out=[];this.selectVisible().forEach(t=>{if(!this.STATUS[t.status].open)return;const r=this.slaState(t,'resolution');const rr=this.slaState(t,'reaction');if(r.ok===false)out.push({t,kind:'overdue',txt:'SLA überschritten'});else if(r.warn)out.push({t,kind:'warn',txt:'Läuft bald aus · '+(r.txt||'')});else if(rr.ok===false)out.push({t,kind:'warn',txt:'Reaktionszeit überfällig'});});return out;}
@@ -201,7 +225,7 @@ class Component extends DCLogic {
 
   /* ---------- nav ---------- */
   setUi(patch){this.setState(s=>{const ui={...s.ui,...patch};this.persistUI(ui);return {ui};});}
-  go(view,current){const p={view};if(current!==undefined)p.current=current;this.setUi(p);this.setState({navOpen:false});if(view==='list')this.triggerListLoad();this.triggerViewLoad(view);if(typeof window!=='undefined')window.scrollTo({top:0});}
+  go(view,current){const p={view};if(current!==undefined)p.current=current;this.setUi(p);this.setState({navOpen:false});if(view==='list'){const n=this.selectVisible().length;this.triggerListLoad(n?Math.min(4000,Math.max(400,n*500)):0);}this.triggerViewLoad(view);if(typeof window!=='undefined')window.scrollTo({top:0});}
   openTicket(uid){this.go('detail',uid);}
   toggleRole(){this.setUi({role:this.state.ui.role==='agent'?'user':'agent'});}
 
@@ -221,6 +245,12 @@ class Component extends DCLogic {
   sortList(list,sort){const{key,dir}=sort;const rank=t=>{if(key==='priority')return this.PRIORITY[t.priority].rank;if(key==='status')return this.STATUS_ORDER.indexOf(t.status);if(key==='id')return t.number;if(key==='summary')return t.summary.toLowerCase();return t[key]||0;};return [...list].sort((a,b)=>{const av=rank(a),bv=rank(b);if(av<bv)return -1*dir;if(av>bv)return 1*dir;return 0;});}
   ticketMatches(t,q){const ql=q.toLowerCase();const hit=x=>(x||'').toLowerCase().includes(ql);return hit(t.summary)||hit(t.description)||hit(t.solution)||hit(this.displayId(t))||hit(t.category)||t.journal.some(j=>hit(j.text));}
   assetName(id){if(!id)return null;const a=this.state.db.assets.find(x=>x.id===id);return a?a.name:null;}
+
+  /* ---------- accents (Priorität / Kategorie) ---------- */
+  hexA(hex,a){hex=(hex||'#666666').replace('#','');const r=parseInt(hex.substring(0,2),16),g=parseInt(hex.substring(2,4),16),b=parseInt(hex.substring(4,6),16);return 'rgba('+r+','+g+','+b+','+a+')';}
+  priorityAccent(p){return p==='critical'?this.C.danger:(p==='high'?this.C.warning:null);}
+  CATEGORY_PALETTE(){return [this.C.link,this.C.warning,this.C.success,this.C.danger];}
+  categoryAccent(cat){const pal=this.CATEGORY_PALETTE();const cats=this.state.db.categories||[];let idx=cats.indexOf(cat);if(idx<0){let hash=0;const s=String(cat||'');for(let i=0;i<s.length;i++)hash=(hash*31+s.charCodeAt(i))>>>0;idx=hash;}return pal[((idx%pal.length)+pal.length)%pal.length];}
 
   /* ---------- format ---------- */
   displayId(t){return this.TYPES[t.type].prefix+'-'+String(t.number).padStart(4,'0');}
@@ -260,12 +290,18 @@ class Component extends DCLogic {
   addKBVersion(id,body){this.update(next=>{const a=next.kb.find(x=>x.id===id);if(!a)return;const last=a.versions[a.versions.length-1];a.versions.push({v:last.v+1,date:Date.now(),author:this.state.ui.user,body});});this.toast('Neue Version gespeichert.','ok');}
   addService(s){this.update(next=>next.services.push({id:'S'+Date.now().toString(36),...s}));this.toast('Service angelegt.','ok');}
   addAsset(a){this.update(next=>next.assets.push({id:'A'+Date.now().toString(36),...a}));this.toast('Asset angelegt.','ok');}
+  parseDateInput(v){if(!v)return null;const t=new Date(v+'T00:00:00').getTime();return isNaN(t)?null:t;}
+  dateInputVal(ts){return ts?new Date(ts).toISOString().slice(0,10):'';}
+  addTodo(data){if(!data.title||!data.title.trim()){this.toast('Titel fehlt.','err');return;}this.update(next=>{if(!Array.isArray(next.todos))next.todos=[];next.todos.push({id:'D'+Date.now().toString(36),title:data.title.trim(),description:data.description||'',createdAt:Date.now(),dueAt:this.parseDateInput(data.dueAt),priority:data.priority||'medium',author:this.state.ui.user,done:false});});this.toast('ToDo hinzugefügt.','ok');}
+  updateTodo(id,patch){this.update(next=>{const t=(next.todos||[]).find(x=>x.id===id);if(t)Object.assign(t,patch);});this.toast('ToDo gespeichert.','ok');}
+  toggleTodoDone(id){this.update(next=>{const t=(next.todos||[]).find(x=>x.id===id);if(t)t.done=!t.done;});}
+  deleteTodo(id){const snap=structuredClone((this.state.db.todos||[]).find(x=>x.id===id));this.update(next=>{next.todos=(next.todos||[]).filter(x=>x.id!==id);});this.showUndo('ToDo gelöscht',()=>{if(snap)this.update(next=>{if(!Array.isArray(next.todos))next.todos=[];next.todos.push(structuredClone(snap));});});}
   setSetting(k,v){this.update(next=>{next.settings[k]=v;});}
   addToList(key,val){if(!val)return;this.update(next=>{if(!next[key].includes(val))next[key].push(val);});}
   removeFromList(key,idx){this.update(next=>next[key].splice(idx,1));}
   runAutomationNow(){this.update(next=>this.runAutomation(next));this.toast('Automatik ausgeführt.','ok');}
   exportData(){const blob=new Blob([JSON.stringify(this.state.db,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='heimdesk-export.json';a.click();}
-  importData(file){const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.tickets)throw 0;this.persistDB(d);this.setState({db:d});this.markLocalChange();this.toast('Import erfolgreich.','ok');this.go('list');}catch(e){this.toast('Ungültige Datei.','err');}};r.readAsText(file);}
+  importData(file){const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.tickets)throw 0;this.migrateDB(d);this.persistDB(d);this.setState({db:d});this.markLocalChange();this.toast('Import erfolgreich.','ok');this.go('list');}catch(e){this.toast('Ungültige Datei.','err');}};r.readAsText(file);}
   resetAll(){if(!confirm('Wirklich ALLE Daten löschen und Beispieldaten wiederherstellen?'))return;const fresh=this.seed(Date.now());this.persistDB(fresh);this.setState({db:fresh});this.markLocalChange();this.toast('Zurückgesetzt.','ok');this.go('dashboard');}
 
   /* ---------- sync ---------- */
@@ -280,7 +316,7 @@ class Component extends DCLogic {
   syncHeaders(cfg){return{apikey:cfg.anonKey,Authorization:'Bearer '+cfg.anonKey,'Content-Type':'application/json'};}
   async pull(cfg){const h=await this.hashCode(cfg.code);const res=await fetch(this.normUrl(cfg.url)+'/rest/v1/rpc/heimdesk_get',{method:'POST',headers:this.syncHeaders(cfg),body:JSON.stringify({p_code_hash:h})});if(!res.ok)throw new Error('Pull ('+res.status+')');const rows=await res.json();const row=Array.isArray(rows)?rows[0]:rows;if(!row||!row.data)return null;return{data:row.data,updatedAt:Number(row.updated_at)||0};}
   async pushRemote(cfg,data,updatedAt){const h=await this.hashCode(cfg.code);const res=await fetch(this.normUrl(cfg.url)+'/rest/v1/rpc/heimdesk_set',{method:'POST',headers:this.syncHeaders(cfg),body:JSON.stringify({p_code_hash:h,p_data:data,p_updated_at:updatedAt})});if(!res.ok)throw new Error('Push ('+res.status+')');}
-  adoptRemote(data,updatedAt){this.meta={updatedAt};this._saveSyncMeta(this.meta);this.dirty=false;this.persistDB(data);this.setState({db:data});}
+  adoptRemote(data,updatedAt){this.meta={updatedAt};this._saveSyncMeta(this.meta);this.dirty=false;this.migrateDB(data);this.persistDB(data);this.setState({db:data});}
   async flushPush(){const cfg=this.cfg;if(!cfg||!this.dirty)return;if(!this.isOnline()){this.setState(s=>({sync:{...s.sync,status:'offline'}}));return;}this.setState(s=>({sync:{...s.sync,status:'syncing',error:null}}));try{await this.pushRemote(cfg,this.state.db,this.meta.updatedAt);this.dirty=false;this.setState(s=>({sync:{...s.sync,status:'ok',lastAt:Date.now(),error:null}}));}catch(e){this.setState(s=>({sync:{...s.sync,status:'error',error:String(e.message||e)}}));}}
   markLocalChange(){if(!this.cfg)return;this.meta={updatedAt:Date.now()};this._saveSyncMeta(this.meta);this.dirty=true;if(this.pushTimer)clearTimeout(this.pushTimer);this.pushTimer=setTimeout(()=>this.flushPush(),1500);}
   async runStartupSync(){const cfg=this.cfg;if(!cfg)return;if(!this.isOnline()){this.setState(s=>({sync:{...s.sync,status:'offline'}}));return;}this.setState(s=>({sync:{...s.sync,status:'syncing',error:null}}));try{const remote=await this.pull(cfg);if(remote&&remote.updatedAt>this.meta.updatedAt){this.adoptRemote(remote.data,remote.updatedAt);}else if(!remote||this.dirty||remote.updatedAt<this.meta.updatedAt){this.dirty=true;await this.flushPush();return;}this.setState(s=>({sync:{...s.sync,status:'ok',lastAt:Date.now(),error:null}}));}catch(e){this.setState(s=>({sync:{...s.sync,status:'error',error:String(e.message||e)}}));}}
@@ -289,13 +325,16 @@ class Component extends DCLogic {
   disconnectSync(){this.cfg=null;this._saveSyncCfg(null);this.dirty=false;this.setState({sync:{configured:false,status:'disabled',lastAt:null,error:null}});this.toast('Cloud-Sync getrennt.','ok');}
 
   /* ---------- RELOAD (cloud pull → else local refresh) ---------- */
-  async onReload(){if(this.state.reloading)return;this.setState({reloading:true});
-    if(this.state.ui.view==='list')this.triggerListLoad(3000);
+  async onReload(){if(this.state.reloading)return;
+    this.setState(s=>({reloading:true,spin:(s.spin||0)+360}));
+    if(this._spinTimer)clearInterval(this._spinTimer);
+    this._spinTimer=setInterval(()=>this.setState(s=>({spin:(s.spin||0)+360})),650);
+    if(this.state.ui.view==='list'){const n=this.selectVisible().length;this.triggerListLoad(n?Math.min(4000,Math.max(400,n*500)):0);}
     try{
       if(this.cfg&&this.isOnline()){await this.syncNow();this.toast('Cloud-Daten aktualisiert.','ok');}
       else{const db=this._loadDB();this.setState({db});this.toast(this.cfg?'Offline – lokal aktualisiert.':'Lokal aktualisiert.',this.cfg?'err':'ok');}
     }catch(e){this.toast('Reload fehlgeschlagen.','err');}
-    finally{this.setState({reloading:false,lastReload:Date.now()});setTimeout(()=>this.notifyExpiring(true),400);}
+    finally{if(this._spinTimer){clearInterval(this._spinTimer);this._spinTimer=null;}this.setState({reloading:false,lastReload:Date.now()});setTimeout(()=>this.notifyExpiring(true),400);}
   }
 
   /* ---------- modal helpers ---------- */
@@ -316,6 +355,8 @@ class Component extends DCLogic {
       case 'kbVersion':return{body:''};
       case 'serviceNew':return{name:'',desc:'',category:db.categories[0],priority:'medium'};
       case 'assetNew':return{name:'',type:'',location:'',category:db.categories[0]};
+      case 'todoNew':return{title:'',description:'',dueAt:'',priority:'medium'};
+      case 'todoEdit':{const td=(db.todos||[]).find(x=>x.id===extra.id);return td?{title:td.title,description:td.description||'',dueAt:this.dateInputVal(td.dueAt),priority:td.priority,done:!!td.done}:{title:'',description:'',dueAt:'',priority:'medium',done:false};}
       case 'listAdd':return{val:''};
       case 'sync':return{url:this.cfg?this.cfg.url:'',anonKey:this.cfg?this.cfg.anonKey:'',code:this.cfg?this.cfg.code:''};
       default:return{};}}
@@ -333,11 +374,17 @@ class Component extends DCLogic {
       this.mkSeed(3,'ticket','new','Geschirrspüler macht komische Geräusche','Beim Spülgang ein lautes Brummen, riecht leicht verschmort.','Reparatur','medium',null,'Haustechnik','Mia','A4',d(0.3),d(0.3)),
       this.mkSeed(4,'incident','resolved','WLAN im Schlafzimmer sehr langsam','Download bricht ständig ab, Streaming ruckelt nur in diesem Raum.','IT / Netzwerk','medium','Alex','2nd Level Support','Mia','A2',d(9),d(2),{solution:'Repeater umgestellt und 5-GHz-Kanal fixiert. Durchsatz nun stabil bei ~90 Mbit/s.',resolvedAt:d(2)}),
       this.mkSeed(5,'task','closed','Rauchmelder Batterien tauschen','Alle 4 Rauchmelder mit neuen Batterien versehen.','Haushalt','low','Jonas','Haustechnik','Jonas',null,d(20),d(14),{solution:'Alle Batterien getauscht und Funktion getestet.',resolvedAt:d(15),closedAt:d(14),rating:{stars:5,comment:'Schnell erledigt, danke!'}}),
+    ],
+    todos:[
+      {id:'D1',title:'Ersatzteil für Waschmaschine bestellen',description:'Pumpe (Modell siehe Rechnung) beim Hersteller nachbestellen.',createdAt:d(6),dueAt:now-1*86400000,priority:'high',author:'Jonas',done:false},
+      {id:'D2',title:'Rauchmelder-Wartungsplan für nächstes Jahr anlegen',description:'Turnus und Zuständigkeiten für die jährliche Prüfung festhalten.',createdAt:d(3),dueAt:now+2*86400000,priority:'medium',author:'Alex',done:false},
+      {id:'D3',title:'Angebote für neuen Router einholen',description:'Mindestens zwei Angebote vergleichen, WLAN-6 bevorzugt.',createdAt:d(12),dueAt:now+10*86400000,priority:'low',author:'Mia',done:false},
+      {id:'D4',title:'Feuerlöscher prüfen lassen',description:'Jährliche Prüfung wurde durchgeführt.',createdAt:d(18),dueAt:d(4),priority:'medium',author:'Jonas',done:true},
     ]};}
 
   /* ---------- ICONS ---------- */
   icon(name,size,stroke){const h=React.createElement;const s=size||18;const sw=stroke||1.4;const p={width:s,height:s,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor','strokeWidth':sw,'strokeLinecap':'round','strokeLinejoin':'round',style:{display:'block'}};const P=d=>h('path',{d});
-    const map={reload:[P('M21 12a9 9 0 1 1-2.64-6.36'),P('M21 3v6h-6')],search:[h('circle',{cx:11,cy:11,r:7}),P('m21 21-4.3-4.3')],menu:[P('M3 6h18'),P('M3 12h18'),P('M3 18h18')],plus:[P('M12 5v14'),P('M5 12h14')],x:[P('M18 6 6 18'),P('M6 6l12 12')],chevL:[P('m15 18-6-6 6-6')],chevR:[P('m9 18 6-6-6-6')],star:[P('M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.3l6.1-.7z')],filter:[P('M3 5h18'),P('M6 12h12'),P('M10 19h4')],check:[P('M20 6 9 17l-5-5')],clock:[h('circle',{cx:12,cy:12,r:9}),P('M12 7v5l3 2')],user:[h('circle',{cx:12,cy:8,r:4}),P('M4 21c0-4 4-6 8-6s8 2 8 6')],book:[P('M4 4h13a3 3 0 0 1 3 3v13H7a3 3 0 0 0-3 3z'),P('M4 4v16')],grid:[h('rect',{x:3,y:3,width:7,height:7,rx:0}),h('rect',{x:14,y:3,width:7,height:7,rx:0}),h('rect',{x:3,y:14,width:7,height:7,rx:0}),h('rect',{x:14,y:14,width:7,height:7,rx:0})],box:[P('M3 8l9-5 9 5v8l-9 5-9-5z'),P('M3 8l9 5 9-5'),P('M12 13v8')],gear:[h('circle',{cx:12,cy:12,r:3}),P('M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2')],home:[P('M3 11l9-8 9 8'),P('M5 10v10h14V10')],trash:[P('M4 7h16'),P('M9 7V5h6v2'),P('M6 7l1 13h10l1-13')],chart:[P('M4 20V10'),P('M10 20V4'),P('M16 20v-7'),P('M22 20H2')],arrow:[P('M5 12h14'),P('m13 6 6 6-6 6')]};
+    const map={reload:[P('M21 12a9 9 0 1 1-2.64-6.36'),P('M21 3v6h-6')],search:[h('circle',{cx:11,cy:11,r:7}),P('m21 21-4.3-4.3')],menu:[P('M3 6h18'),P('M3 12h18'),P('M3 18h18')],plus:[P('M12 5v14'),P('M5 12h14')],x:[P('M18 6 6 18'),P('M6 6l12 12')],chevL:[P('m15 18-6-6 6-6')],chevR:[P('m9 18 6-6-6-6')],star:[P('M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.3l6.1-.7z')],filter:[P('M3 5h18'),P('M6 12h12'),P('M10 19h4')],check:[P('M20 6 9 17l-5-5')],clock:[h('circle',{cx:12,cy:12,r:9}),P('M12 7v5l3 2')],user:[h('circle',{cx:12,cy:8,r:4}),P('M4 21c0-4 4-6 8-6s8 2 8 6')],book:[P('M4 4h13a3 3 0 0 1 3 3v13H7a3 3 0 0 0-3 3z'),P('M4 4v16')],grid:[h('rect',{x:3,y:3,width:7,height:7,rx:0}),h('rect',{x:14,y:3,width:7,height:7,rx:0}),h('rect',{x:3,y:14,width:7,height:7,rx:0}),h('rect',{x:14,y:14,width:7,height:7,rx:0})],box:[P('M3 8l9-5 9 5v8l-9 5-9-5z'),P('M3 8l9 5 9-5'),P('M12 13v8')],gear:[h('circle',{cx:12,cy:12,r:3}),P('M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2')],home:[P('M3 11l9-8 9 8'),P('M5 10v10h14V10')],trash:[P('M4 7h16'),P('M9 7V5h6v2'),P('M6 7l1 13h10l1-13')],chart:[P('M4 20V10'),P('M10 20V4'),P('M16 20v-7'),P('M22 20H2')],arrow:[P('M5 12h14'),P('m13 6 6 6-6 6')],todo:[h('rect',{x:3,y:4,width:6,height:6,rx:1}),P('m4.5 7 1 1 2-2'),P('M12 6h9'),h('rect',{x:3,y:14,width:6,height:6,rx:1}),P('M12 17h9')]};
     return h('svg',p,...(map[name]||[]));}
 
   /* ---------- small render helpers ---------- */
@@ -349,7 +396,7 @@ class Component extends DCLogic {
   Chip(txt,opts){const h=React.createElement;opts=opts||{};return h('span',{style:{display:'inline-flex',alignItems:'center',gap:'7px',height:'24px',padding:'0 10px',border:'1px solid '+(opts.border||this.C.lineStrong),background:'transparent',color:opts.color||this.C.body,fontFamily:this.C.mono,fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',whiteSpace:'nowrap',...(opts.style||{})}},opts.dot?h('span',{style:{width:'7px',height:'7px',borderRadius:'9999px',background:opts.dot,flex:'none'}}):null,txt);}
   StatusBadge(s){const m=this.STATUS[s];return this.Chip(m.label,{dot:m.dot,color:this.C.bodyStrong});}
   TypeBadge(t){return this.Chip(this.TYPES[t].label,{color:this.C.muted,border:this.C.line});}
-  PriorityTag(p){const h=React.createElement;const m=this.PRIORITY[p];return h('span',{style:{display:'inline-flex',alignItems:'center',gap:'7px',fontFamily:this.C.mono,fontSize:'11px',letterSpacing:'1px',textTransform:'uppercase',color:this.C.body}},h('span',{style:{width:'7px',height:'7px',borderRadius:'9999px',background:m.dot,flex:'none'}}),m.label);}
+  PriorityTag(p){const h=React.createElement;const m=this.PRIORITY[p];const accented=(p==='high'||p==='critical');return h('span',{style:{display:'inline-flex',alignItems:'center',gap:'7px',fontFamily:this.C.mono,fontSize:'11px',letterSpacing:'1px',textTransform:'uppercase',color:accented?m.dot:this.C.body,fontWeight:p==='critical'?700:400}},h('span',{style:{width:'7px',height:'7px',borderRadius:'9999px',background:m.dot,flex:'none'}}),m.label);}
   Card(children,extra){const h=React.createElement;return h('div',{style:{background:this.C.card,border:'1px solid '+this.C.line,padding:'24px',...(extra||{})}},children);}
   Field(label,control){const h=React.createElement;return h('label',{style:{display:'flex',flexDirection:'column',gap:'8px'}},h('span',{style:{fontFamily:this.C.mono,fontSize:'10px',fontWeight:400,letterSpacing:'2px',textTransform:'uppercase',color:this.C.muted}},label),control);}
   inputStyle(){return{height:'44px',padding:'0 0 6px',border:'none',borderBottom:'1px solid '+this.C.lineStrong,background:'transparent',color:this.C.ink,fontFamily:this.C.serif,fontSize:'18px',outline:'none',width:'100%',borderRadius:0};}
@@ -359,7 +406,7 @@ class Component extends DCLogic {
   /* ---------- renderVals ---------- */
   renderVals(){
     const h=React.createElement,C=this.C,ui=this.state.ui;
-    const nav=[['dashboard','Übersicht','chart'],['list','Tickets','grid'],['kb','Wissen','book'],['catalog','Katalog','home'],['assets','Assets','box'],['settings','Setup','gear']];
+    const nav=[['dashboard','Übersicht','chart'],['list','Tickets','grid'],['todo','ToDo','todo'],['kb','Wissen','book'],['catalog','Katalog','home'],['assets','Assets','box'],['settings','Setup','gear']];
     const navItems=nav.map(([key,label,ic])=>{const active=ui.view===key||(key==='list'&&['detail','create','edit'].includes(ui.view))||(key==='kb'&&ui.view==='kbArticle');
       return{key,label,icon:this.icon(ic,18),onClick:()=>this.go(key),
         topStyle:{height:'40px',padding:'0 4px',border:'none',borderBottom:'1px solid '+(active?C.ink:'transparent'),background:'transparent',color:active?C.ink:C.muted,fontFamily:C.mono,fontSize:'12px',letterSpacing:'2px',textTransform:'uppercase'},
@@ -385,7 +432,7 @@ class Component extends DCLogic {
       screen:h('div',{key:this.state.ui.view+(this.state.ui.current||''),className:'lx-view'},this.renderScreen()),
       overlays:this.renderOverlays(),
       onReload:()=>this.onReload(),reloadTitle,
-      reloadIcon:h('span',{style:{display:'flex',animation:this.state.reloading?'hd-spin .8s linear infinite':'none'}},this.icon('reload',22,1.6)),
+      reloadIcon:h('span',{className:'lx-spin',style:{display:'flex',transform:'rotate('+(this.state.spin||0)+'deg)'}},this.icon('reload',22,1.6)),
       fabStyle:{position:'fixed',right:this.state.mobile?'18px':'32px',bottom:this.state.mobile?'22px':'32px',zIndex:55,width:'58px',height:'58px',borderRadius:'9999px',border:'1px solid '+fabBorder,background:'#000',color:fabBorder,display:'flex',alignItems:'center',justifyContent:'center'},
     };
   }
@@ -397,6 +444,7 @@ class Component extends DCLogic {
     switch(v){
       case 'dashboard':return this.viewDashboard();
       case 'list':return this.viewList();
+      case 'todo':return this.viewTodo();
       case 'detail':return this.viewDetail();
       case 'create':case 'edit':return this.viewForm(v);
       case 'kb':return this.viewKB();
@@ -493,6 +541,22 @@ class Component extends DCLogic {
         h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}},this.Field('Typ',h('input',{value:mf.type,onChange:e=>set('type',e.target.value),style:this.inputStyle()})),this.Field('Standort',h('input',{value:mf.location,onChange:e=>set('location',e.target.value),style:this.inputStyle()}))),
         this.Field('Kategorie',this.Sel(mf.category,v=>set('category',v),opt(db.categories))));
         ok=()=>{if(!mf.name.trim()){this.toast('Name fehlt.','err');return;}this.addAsset({name:mf.name.trim(),type:mf.type,location:mf.location,category:mf.category});this.closeModal();};break;
+      case 'todoNew':title='Neuer ToDo-Eintrag';okLabel='Anlegen';body=h('div',{style:{display:'grid',gap:'18px'}},
+        this.Field('Titel',h('input',{value:mf.title,onChange:e=>set('title',e.target.value),autoFocus:true,style:this.inputStyle()})),
+        this.Field('Beschreibung',h('textarea',{value:mf.description,onChange:e=>set('description',e.target.value),style:this.taStyle()})),
+        h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}},
+          this.Field('Fällig am',h('input',{type:'date',value:mf.dueAt,onChange:e=>set('dueAt',e.target.value),style:this.inputStyle()})),
+          this.Field('Priorität',this.Sel(mf.priority,v=>set('priority',v),opt(this.PRIORITY_ORDER,p=>this.PRIORITY[p].label)))));
+        ok=()=>{this.addTodo({title:mf.title,description:mf.description,dueAt:mf.dueAt,priority:mf.priority});this.closeModal();};break;
+      case 'todoEdit':title='ToDo bearbeiten';okLabel='Speichern';body=h('div',{style:{display:'grid',gap:'18px'}},
+        this.Field('Titel',h('input',{value:mf.title,onChange:e=>set('title',e.target.value),style:this.inputStyle()})),
+        this.Field('Beschreibung',h('textarea',{value:mf.description,onChange:e=>set('description',e.target.value),style:this.taStyle()})),
+        h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}},
+          this.Field('Fällig am',h('input',{type:'date',value:mf.dueAt,onChange:e=>set('dueAt',e.target.value),style:this.inputStyle()})),
+          this.Field('Priorität',this.Sel(mf.priority,v=>set('priority',v),opt(this.PRIORITY_ORDER,p=>this.PRIORITY[p].label)))),
+        h('div',{style:{display:'flex',alignItems:'center',gap:'12px'}},this.Chk(!!mf.done,()=>set('done',!mf.done)),h('span',{style:{fontFamily:C.serif,fontSize:'16px',color:C.body}},'Erledigt')),
+        h('div',{style:{borderTop:'1px solid '+C.line,paddingTop:'16px'}},this.Btn('Eintrag löschen',()=>{this.deleteTodo(m.id);this.closeModal();},'danger',{sm:true,icon:'trash'})));
+        ok=()=>{if(!mf.title||!mf.title.trim()){this.toast('Titel fehlt.','err');return;}this.updateTodo(m.id,{title:mf.title.trim(),description:mf.description,dueAt:this.parseDateInput(mf.dueAt),priority:mf.priority,done:!!mf.done});this.closeModal();};break;
       case 'listAdd':title='Hinzufügen'; okLabel='Hinzufügen';body=this.Field(m.label,h('input',{value:mf.val,onChange:e=>set('val',e.target.value),autoFocus:true,style:this.inputStyle()}));
         ok=()=>{if(!mf.val.trim()){this.closeModal();return;}this.addToList(m.listKey,mf.val.trim());this.closeModal();};break;
       case 'sync':title='Cloud-Sync einrichten';okLabel='Verbinden';body=h('div',{style:{display:'grid',gap:'18px'}},
@@ -505,7 +569,7 @@ class Component extends DCLogic {
       case 'sql':title='Supabase SQL-Setup';okLabel='Kopieren';body=h('div',null,h('p',{style:{margin:'0 0 14px',fontFamily:C.serif,fontSize:'16px',color:C.body}},'Einmalig im Supabase SQL-Editor ausführen:'),h('pre',{className:'hd-sc',style:{margin:0,padding:'16px',background:'#000',color:C.body,border:'1px solid '+C.lineStrong,fontFamily:C.mono,fontSize:'11.5px',lineHeight:1.6,overflow:'auto',maxHeight:'340px',whiteSpace:'pre'}},this.SUPABASE_SQL()));
         ok=()=>{navigator.clipboard&&navigator.clipboard.writeText(this.SUPABASE_SQL());this.toast('SQL kopiert.','ok');this.closeModal();};break;
       default:return null;}
-    const wide=['sync','sql','serviceNew','kbNew'].includes(m.kind);
+    const wide=['sync','sql','serviceNew','kbNew','todoNew','todoEdit'].includes(m.kind);
     return h('div',{onClick:()=>this.closeModal(),style:{position:'fixed',inset:0,zIndex:80,background:'rgba(0,0,0,.78)',display:'flex',alignItems:this.state.mobile?'flex-end':'center',justifyContent:'center',padding:this.state.mobile?'0':'24px',animation:'hd-fade .16s ease'}},
       h('div',{onClick:e=>e.stopPropagation(),className:'hd-sc',style:{width:'100%',maxWidth:wide?'580px':'460px',maxHeight:'90vh',overflow:'auto',background:C.card,border:'1px solid '+C.lineStrong,padding:'28px',animation:'hd-rise .22s ease'}},
         h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'24px',paddingBottom:'16px',borderBottom:'1px solid '+C.line}},h('h2',{style:{margin:0,fontFamily:C.disp,fontSize:'26px',fontWeight:400,letterSpacing:'1px',textTransform:'uppercase',color:C.ink}},title),h('button',{onClick:()=>this.closeModal(),style:{width:'38px',height:'38px',borderRadius:'9999px',border:'1px solid '+C.lineStrong,background:'transparent',color:C.muted,display:'flex',alignItems:'center',justifyContent:'center'}},this.icon('x',18))),
@@ -601,7 +665,7 @@ class Component extends DCLogic {
     const th={fontFamily:C.mono,fontSize:'10px',letterSpacing:'2px',textTransform:'uppercase',color:C.mutedSoft};
     const head=h('div',{style:{display:'grid',gridTemplateColumns:cols,gap:'14px',alignItems:'center',padding:'0 20px 14px',...th}},
       canBulk?this.Chk(allSel,()=>this.selAll(list)):null,h('span',null,'ID'),h('span',null,'Betreff'),h('span',null,'Status'),h('span',null,'Priorität'),h('span',null,'Verantwortlich'),h('span',null,'Update'));
-    const rows=list.map((t,i)=>{const sel=this.isSel(t.uid);const hi=t.priority==='high'||t.priority==='critical';return h('div',{key:t.uid,className:'lx-row',onClick:()=>this.openTicket(t.uid),style:{display:'grid',gridTemplateColumns:cols,gap:'14px',alignItems:'center',padding:'16px 20px 16px '+(hi?'17px':'20px'),background:sel?C.soft:'transparent',borderTop:'1px solid '+C.line,borderLeft:hi?'3px solid rgba(200,66,66,.55)':'none',cursor:'pointer',animation:'hd-stagger .45s both',animationDelay:(i*55)+'ms'}},
+    const rows=list.map((t,i)=>{const sel=this.isSel(t.uid);const accP=this.priorityAccent(t.priority);const hi=!!accP;const pl=hi?'17px':'20px';return h('div',{key:t.uid,className:'lx-row lx-row-grid',onClick:()=>this.openTicket(t.uid),style:{'--pl':pl,display:'grid',gridTemplateColumns:cols,gap:'14px',alignItems:'center',paddingTop:'16px',paddingBottom:'16px',paddingRight:'20px',paddingLeft:'var(--pl)',background:sel?C.soft:'transparent',borderTop:'1px solid '+C.line,borderLeft:hi?'3px solid '+this.hexA(accP,.6):'none',cursor:'pointer',animation:'hd-stagger .45s both',animationDelay:(i*55)+'ms'}},
       canBulk?this.Chk(sel,()=>this.toggleSel(t.uid)):null,
       h('span',{style:{fontFamily:C.mono,fontSize:'11px',letterSpacing:'.5px',color:C.muted}},this.displayId(t)),
       h('span',{style:{display:'flex',alignItems:'center',gap:'9px',minWidth:0}},this.isEscalated(t,this.state.db.settings.escalationDays)?h('span',{title:'Eskaliert',style:{width:'6px',height:'6px',flex:'none',borderRadius:'9999px',background:C.warning}}):null,h('span',{style:{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontFamily:C.serif,fontSize:'17px',color:C.bodyStrong}},t.summary)),
@@ -611,8 +675,8 @@ class Component extends DCLogic {
       h('span',{style:{fontFamily:C.mono,fontSize:'10px',letterSpacing:'.5px',textTransform:'uppercase',color:C.mutedSoft}},this.relTime(t.updatedAt)));});
     return h('div',{className:'hd-sc',style:{background:C.card,border:'1px solid '+C.line,overflow:'hidden',overflowX:'auto'}},h('div',{style:{minWidth:canBulk?'920px':'880px',paddingTop:'18px'}},head,rows));}
 
-  ticketCard(t,canBulk,i){const h=React.createElement,C=this.C;const sel=this.isSel(t.uid);const hi=t.priority==='high'||t.priority==='critical';
-    return h('div',{onClick:()=>this.openTicket(t.uid),style:{background:C.card,border:'1px solid '+(sel?C.link:(hi?'rgba(200,66,66,.5)':C.line)),borderLeft:hi?'3px solid rgba(200,66,66,.6)':(sel?'1px solid '+C.link:'1px solid '+C.line),padding:'18px',cursor:'pointer',animation:'hd-stagger .45s both',animationDelay:((i||0)*60)+'ms'}},
+  ticketCard(t,canBulk,i){const h=React.createElement,C=this.C;const sel=this.isSel(t.uid);const accP=this.priorityAccent(t.priority);const hi=!!accP;
+    return h('div',{onClick:()=>this.openTicket(t.uid),className:'lx-card-row',style:{'--pl':'18px',background:C.card,border:'1px solid '+(sel?C.link:(hi?this.hexA(accP,.55):C.line)),borderLeft:hi?'3px solid '+this.hexA(accP,.65):(sel?'1px solid '+C.link:'1px solid '+C.line),paddingTop:'18px',paddingBottom:'18px',paddingRight:'18px',paddingLeft:'var(--pl)',cursor:'pointer',animation:'hd-stagger .45s both',animationDelay:((i||0)*60)+'ms'}},
       h('div',{style:{display:'flex',alignItems:'center',gap:'12px',marginBottom:'12px'}},
         canBulk?this.Chk(sel,()=>this.toggleSel(t.uid)):null,
         h('span',{style:{fontFamily:C.mono,fontSize:'11px',letterSpacing:'.5px',color:C.muted}},this.displayId(t)),
@@ -724,10 +788,31 @@ class Component extends DCLogic {
   viewAssets(){const h=React.createElement,C=this.C;const assets=this.state.db.assets;
     const count=id=>this.state.db.tickets.filter(t=>t.assetId===id).length;
     return h('div',null,this.pageHead('Assets',assets.length+' Objekte',this.isAgent()?this.Btn('Neues Asset',()=>this.openModal('assetNew'),'primary',{icon:'plus'}):null),
-      h('div',{style:{display:'grid',gridTemplateColumns:this.state.mobile?'1fr':'repeat(2,1fr)',gap:'16px'}},assets.map(a=>{const n=count(a.id);return this.Card(h('div',{style:{display:'flex',flexDirection:'column',gap:'16px'}},
-        h('div',{style:{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px'}},h('div',{style:{width:'46px',height:'46px',border:'1px solid '+C.lineStrong,display:'flex',alignItems:'center',justifyContent:'center',flex:'none',color:C.muted}},this.icon('box',22)),this.Chip(a.category,{color:C.muted,border:C.line})),
+      h('div',{style:{display:'grid',gridTemplateColumns:this.state.mobile?'1fr':'repeat(2,1fr)',gap:'16px'}},assets.map(a=>{const n=count(a.id);const acc=this.categoryAccent(a.category);return this.Card(h('div',{style:{display:'flex',flexDirection:'column',gap:'16px'}},
+        h('div',{style:{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'12px'}},h('div',{style:{width:'46px',height:'46px',border:'1px solid '+this.hexA(acc,.55),display:'flex',alignItems:'center',justifyContent:'center',flex:'none',color:acc}},this.icon('box',22)),this.Chip(a.category,{color:acc,border:this.hexA(acc,.45)})),
         h('div',null,h('div',{style:{fontFamily:C.disp,fontSize:'22px',fontWeight:400,letterSpacing:'.5px',color:C.ink}},a.name),h('div',{style:{fontFamily:C.mono,fontSize:'11px',letterSpacing:'.5px',textTransform:'uppercase',color:C.mutedSoft,marginTop:'6px'}},a.type+' · '+a.location)),
-        h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',borderTop:'1px solid '+C.line,paddingTop:'16px'}},h('span',{style:{fontFamily:C.mono,fontSize:'11px',letterSpacing:'1px',textTransform:'uppercase',color:C.muted}},n+(n===1?' Ticket':' Tickets')),n?this.Btn('Anzeigen',()=>{this.setUi({filters:{asset:a.id},quick:null});this.go('list');},'ghost',{sm:true,style:{padding:0}}):null)));})));}
+        h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',borderTop:'1px solid '+C.line,paddingTop:'16px'}},h('span',{style:{fontFamily:C.mono,fontSize:'11px',letterSpacing:'1px',textTransform:'uppercase',color:C.muted}},n+(n===1?' Ticket':' Tickets')),n?this.Btn('Anzeigen',()=>{this.setUi({filters:{asset:a.id},quick:null});this.go('list');},'ghost',{sm:true,style:{padding:0}}):null)),{borderTop:'2px solid '+this.hexA(acc,.7)});})));}
+
+  viewTodo(){const h=React.createElement,C=this.C;const all=this.state.db.todos||[];
+    const now=Date.now();
+    const overdue=t=>!t.done&&t.dueAt&&t.dueAt<now;
+    const dueSoon=t=>!t.done&&t.dueAt&&!overdue(t)&&(t.dueAt-now)<2*86400000;
+    const todos=[...all].sort((a,b)=>{if(!!a.done!==!!b.done)return a.done?1:-1;const ad=a.dueAt||Infinity,bd=b.dueAt||Infinity;return ad-bd;});
+    const cols=this.state.mobile?'1fr':'1fr 118px 118px 120px 110px';
+    const head=this.state.mobile?null:h('div',{style:{display:'grid',gridTemplateColumns:cols,gap:'14px',alignItems:'center',padding:'0 20px 14px',fontFamily:C.mono,fontSize:'10px',letterSpacing:'2px',textTransform:'uppercase',color:C.mutedSoft}},
+      h('span',null,'Titel'),h('span',null,'Erstellt'),h('span',null,'Fällig'),h('span',null,'Priorität'),h('span',null,'Ersteller'));
+    const rows=todos.map((t,i)=>h('div',{key:t.id,className:'lx-row',onClick:()=>this.openModal('todoEdit',{id:t.id}),style:{display:'grid',gridTemplateColumns:cols,gap:'14px',alignItems:'center',padding:'16px 20px',borderTop:i?'1px solid '+C.line:'none',borderLeft:overdue(t)?'3px solid '+this.hexA(C.danger,.65):(dueSoon(t)?'3px solid '+this.hexA(C.warning,.6):'none'),cursor:'pointer',opacity:t.done?.5:1,animation:'hd-stagger .4s both',animationDelay:(i*45)+'ms'}},
+      h('div',{style:{display:'flex',alignItems:'center',gap:'12px',minWidth:0}},
+        h('span',{onClick:e=>e.stopPropagation()},this.Chk(!!t.done,()=>this.toggleTodoDone(t.id))),
+        h('span',{style:{fontFamily:C.serif,fontSize:'17px',color:C.bodyStrong,textDecoration:t.done?'line-through':'none',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},t.title)),
+      this.state.mobile?null:h('span',{style:{fontFamily:C.mono,fontSize:'11px',color:C.mutedSoft}},this.fmtDateShort(t.createdAt)),
+      this.state.mobile?null:h('span',{style:{fontFamily:C.mono,fontSize:'11px',letterSpacing:'.5px',color:overdue(t)?C.danger:(dueSoon(t)?C.warning:C.mutedSoft),fontWeight:overdue(t)?700:400}},t.dueAt?this.fmtDateShort(t.dueAt):'—'),
+      this.state.mobile?null:this.PriorityTag(t.priority),
+      this.state.mobile?null:h('span',{style:{fontFamily:C.mono,fontSize:'11px',letterSpacing:'.5px',textTransform:'uppercase',color:C.muted}},t.author)));
+    return h('div',null,
+      this.pageHead('ToDo',todos.length+(todos.length===1?' Eintrag':' Einträge'),this.Btn('Neuer Eintrag',()=>this.openModal('todoNew'),'primary',{icon:'plus'})),
+      todos.length===0?this.emptyState('Noch keine ToDo-Einträge.',this.Btn('Neuer Eintrag',()=>this.openModal('todoNew'),'primary',{icon:'plus'})):
+      h('div',{className:'hd-sc',style:{background:C.card,border:'1px solid '+C.line,overflow:'hidden',overflowX:'auto'}},h('div',{style:{minWidth:this.state.mobile?'0':'760px',paddingTop:'18px'}},head,rows)));}
 
   viewSettings(){const h=React.createElement,C=this.C;const db=this.state.db;const sync=this.state.sync;const S=db.settings;
     const syncMeta={disabled:['Nicht verbunden',C.mutedSoft],idle:['Bereit',C.success],syncing:['Synchronisiert…',C.warning],ok:['Synchronisiert',C.success],offline:['Offline',C.warning],error:['Fehler',C.warning]}[sync.status]||['—',C.muted];
