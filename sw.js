@@ -2,7 +2,7 @@
    App-Shell offline verfügbar machen. Same-Origin-Dateien werden beim
    Installieren vorgeladen; alles Weitere (inkl. der CDN-Skripte von unpkg)
    wird beim ersten Laden zwischengespeichert („cache-first"). */
-const CACHE = 'heimdesk-lux-v1'
+const CACHE = 'heimdesk-lux-v2'
 const DS = '_ds/luxury-design-system-be25ffed-e9f1-4dd7-8ade-79b64a54ef5a/'
 const SHELL = [
   './',
