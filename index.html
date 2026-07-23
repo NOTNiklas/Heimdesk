@@ -81,6 +81,45 @@
   #root,body{max-width:100%;overflow-x:hidden}
   .lx-main{max-width:1200px;margin:0 auto;padding:40px 40px 140px}
   .lx-main h1{overflow-wrap:break-word;word-break:break-word}
+
+  /* ---------- Aphelios ---------- */
+  @keyframes ai-pulse-dot{0%,100%{transform:scale(1);opacity:.5}50%{transform:scale(1.5);opacity:1}}
+  @keyframes ai-panel-in{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+  @keyframes ai-blink{0%,50%{opacity:1}51%,100%{opacity:0}}
+  @keyframes ai-bounce{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-5px);opacity:1}}
+  @keyframes ai-ring{0%{box-shadow:0 0 0 0 rgba(192,85,63,.5)}100%{box-shadow:0 0 0 10px rgba(192,85,63,0)}}
+  .ai-trigger{transition:border-color .18s ease,background .18s ease}
+  .ai-trigger:hover{border-color:#fff !important;background:rgba(255,255,255,.06) !important}
+  .ai-badge{display:inline-flex;align-items:center;gap:3px}
+  .ai-badge-dot{width:5px;height:5px;border-radius:9999px;background:#c3d9f3;animation:ai-pulse-dot 1.8s ease-in-out infinite}
+  .ai-badge-dot:nth-child(2){animation-delay:.2s}
+  .ai-badge-dot:nth-child(3){animation-delay:.4s}
+  .ai-badge-active .ai-badge-dot{background:#c0553f}
+  .ai-mic-active{animation:ai-ring 1.1s ease-out infinite}
+  .ai-cursor{display:inline-block;width:2px;height:15px;background:#fff;margin-left:2px;vertical-align:middle;animation:ai-blink 1s step-start infinite}
+  .ai-dots{display:flex;gap:5px;padding:6px 0}
+  .ai-dots span{width:6px;height:6px;border-radius:9999px;background:#999;animation:ai-bounce 1.3s ease-in-out infinite}
+  .ai-dots span:nth-child(2){animation-delay:.15s}
+  .ai-dots span:nth-child(3){animation-delay:.3s}
+  .ai-bubble-ai{}
+  .ai-md{font-family:'Cormorant Garamond',Garamond,serif;font-size:15.5px;line-height:1.6;color:#e6e6e6}
+  .ai-md p{margin:0 0 10px}
+  .ai-md p:last-child{margin-bottom:0}
+  .ai-md strong{color:#fff;font-weight:700}
+  .ai-md ul,.ai-md ol{margin:6px 0 10px;padding-left:22px}
+  .ai-md li{margin:3px 0}
+  .ai-md a{color:#c3d9f3;text-decoration:underline}
+  .ai-md h1,.ai-md h2,.ai-md h3{font-family:'Saira Condensed',sans-serif;font-weight:400;letter-spacing:.5px;color:#fff;margin:14px 0 8px}
+  .ai-md h1{font-size:22px}.ai-md h2{font-size:19px}.ai-md h3{font-size:16px}
+  .ai-md code{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12.5px;background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px}
+  .ai-md pre{background:#0a0a0a;border:1px solid #262626;border-radius:8px;padding:12px 14px;overflow:auto;margin:8px 0}
+  .ai-md pre code{background:none;padding:0;font-size:12px;line-height:1.55}
+  .ai-md table{border-collapse:collapse;width:100%;margin:10px 0;font-size:13px}
+  .ai-md th,.ai-md td{border:1px solid #333;padding:6px 10px;text-align:left}
+  .ai-md th{background:rgba(255,255,255,.06);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:#999}
+  .ai-md blockquote{margin:8px 0;padding:4px 14px;border-left:2px solid #c3d9f3;color:#999}
+  .ai-md img{max-width:100%;border-radius:6px}
+
   @media(max-width:820px){
     .lx-main{padding:20px 16px 130px}
     .lx-main h1{font-size:30px !important;letter-spacing:.5px !important}
@@ -99,6 +138,7 @@
         <div style="display:flex;align-items:baseline;gap:3px;font-family:'Saira Condensed',sans-serif;font-size:20px;letter-spacing:4px;text-transform:uppercase;color:#fff">HEIM<span style="color:#666">DESK</span></div>
       </div>
       <div style="flex:1"></div>
+      <button onClick="{{ onAiToggle }}" aria-label="Aphelios öffnen" class="ai-trigger" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border:1px solid #3a3a3a;border-radius:9999px;background:transparent;color:#fff">{{ aiIcon }}</button>
       <button onClick="{{ toggleSearch }}" aria-label="Suche" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border:1px solid #3a3a3a;border-radius:9999px;background:transparent;color:#fff">{{ iconSearch }}</button>
     </header>
     <sc-if value="{{ searchOpen }}" hint-placeholder-val="{{ false }}">
@@ -156,12 +196,16 @@
         <span style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9999px;border:1px solid #3a3a3a;font-family:'JetBrains Mono',monospace;font-size:10px;color:#fff">{{ userInitials }}</span>
         <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#999;padding-right:8px">{{ roleLabel }}</span>
       </button>
+      <button onClick="{{ onAiToggle }}" class="ai-trigger" title="Aphelios (Strg+Leertaste)" style="display:flex;align-items:center;gap:9px;height:42px;padding:0 16px 0 12px;border:1px solid #3a3a3a;border-radius:9999px;background:transparent;color:#fff">
+        {{ aiIcon }}<span style="font-family:'Saira Condensed',sans-serif;font-size:14px;letter-spacing:2px;text-transform:uppercase">Aphelios</span>
+      </button>
     </header>
   </sc-if>
 
   <main class="hd-sc lx-main">{{ screen }}</main>
 
   {{ overlays }}
+  {{ aiPanel }}
 
   <button onClick="{{ onReload }}" title="{{ reloadTitle }}" aria-label="Daten neu laden" class="lx-fab" style="{{ fabStyle }}">{{ reloadIcon }}</button>
 
@@ -170,6 +214,7 @@
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:&quot;100%&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#c3d9f3&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Stil&quot;}}">
 class Component extends DCLogic {
   DB_KEY='heimdesk_db_v1'; UI_KEY='heimdesk_ui_v1'; SYNC_CFG_KEY='heimdesk_sync_v1'; SYNC_META_KEY='heimdesk_sync_meta_v1';
+  AI_CFG_KEY='heimdesk_ai_cfg_v1'; AI_HIST_KEY='heimdesk_ai_history_v1';
 
   C={ink:'#ffffff',canvas:'#000000',soft:'#0d0d0d',card:'#141414',elev:'#1f1f1f',
      body:'#cccccc',bodyStrong:'#e6e6e6',muted:'#999999',mutedSoft:'#666666',
@@ -185,7 +230,8 @@ class Component extends DCLogic {
   PRIORITY_ORDER=['low','medium','high','critical'];
   TRANSFORM={ticket:['incident','service_request','problem','change','task'],incident:['problem','change','task','service_request'],service_request:['task','change','incident'],problem:['change','task','incident'],task:['incident','change'],change:['task','problem']};
 
-  state={db:null,ui:null,toasts:[],sync:{configured:false,status:'disabled',lastAt:null,error:null},modal:null,mf:{},undo:null,mobile:false,navOpen:false,searchOpen:false,reloading:false,lastReload:null,det:{comment:''},listLoading:true,viewLoading:false,pushes:[],spin:0,vvh:(typeof window!=='undefined'?window.innerHeight:800)};
+  state={db:null,ui:null,toasts:[],sync:{configured:false,status:'disabled',lastAt:null,error:null},modal:null,mf:{},undo:null,mobile:false,navOpen:false,searchOpen:false,reloading:false,lastReload:null,det:{comment:''},listLoading:true,viewLoading:false,pushes:[],spin:0,vvh:(typeof window!=='undefined'?window.innerHeight:800),
+    aiOpen:false,aiInput:'',aiThinking:false,aiStreamText:'',aiConvo:[],aiConvoId:null,aiPendingConfirm:null,aiHistoryOpen:false,aiHistQuery:'',aiVoice:'idle',aiWakeOn:false,aiCfg:null,aiError:null};
 
   /* ---------- load / persist ---------- */
   migrateDB(d){if(d&&!Array.isArray(d.todos))d.todos=[];return d;}
@@ -196,7 +242,8 @@ class Component extends DCLogic {
 
   constructor(p){super(p);this.state.db=this._loadDB();this.state.ui=this._loadUI();
     const cfg=this._loadSyncCfg();this.cfg=cfg;this.meta=this._loadSyncMeta();this.dirty=false;this.pushTimer=null;
-    this.state.sync={configured:!!cfg,status:cfg?'idle':'disabled',lastAt:null,error:null};}
+    this.state.sync={configured:!!cfg,status:cfg?'idle':'disabled',lastAt:null,error:null};
+    this.state.aiCfg=this._loadAiCfg();this._aiRecog=null;this._aiWakeRecog=null;this._aiAbort=null;}
 
   componentDidMount(){
     this.onResize=()=>{const m=window.innerWidth<820;if(m!==this.state.mobile){this.setState({mobile:m,navOpen:false});if(m)setTimeout(()=>this.notifyExpiring(),900);}};
@@ -213,12 +260,16 @@ class Component extends DCLogic {
     setTimeout(()=>this.checkDueReminders(),3800);
     this._reminders=setInterval(()=>this.checkDueReminders(),60000);
     this.setState(s=>{const d=structuredClone(s.db);if(this.runAutomation(d)){this.persistDB(d);return {db:d};}return null;});
-    this.onKey=(e)=>{if(e.key==='Escape'){if(this.state.modal)this.closeModal();else if(this.state.navOpen)this.setState({navOpen:false});}
-      if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();this.setState({searchOpen:true});const el=document.querySelector('input[placeholder^="SUCHEN"],input[placeholder^="Tickets"]');if(el)el.focus();}};
+    this.onKey=(e)=>{if(e.key==='Escape'){if(this.state.modal)this.closeModal();else if(this.state.aiOpen)this.aiToggleChat();else if(this.state.navOpen)this.setState({navOpen:false});}
+      if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();this.setState({searchOpen:true});const el=document.querySelector('input[placeholder^="SUCHEN"],input[placeholder^="Tickets"]');if(el)el.focus();}
+      if((e.metaKey||e.ctrlKey)&&e.code==='Space'){e.preventDefault();if(!this.state.aiOpen)this.aiToggleChat();else this.aiToggleChat();}
+      if((e.metaKey||e.ctrlKey)&&e.shiftKey&&(e.key==='A'||e.key==='a')){e.preventDefault();if(!this.aiSpeechSupported()){this.toast('Spracherkennung wird von diesem Browser nicht unterstützt.','err');return;}if(!this.state.aiOpen)this.setState({aiOpen:true});this.aiLoadMarkdownLibs();if(this._aiCmdRecog)this.aiStopCommandCapture();else this.aiStartCommandCapture();}};
     window.addEventListener('keydown',this.onKey);
     this.runStartupSync();
     {const n=this.selectVisible().length;this.triggerListLoad(n?Math.min(4000,Math.max(400,n*500)):0);}
     this.triggerViewLoad(this.state.ui.view);
+    if(this.state.aiCfg.enabled&&this.state.aiCfg.voiceEnabled&&this.state.aiCfg.wakeWordEnabled)this.aiStartWakeListening();
+    if(this.state.aiCfg.enabled)setTimeout(()=>this.aiLoadMarkdownLibs(),1200);
   }
   triggerListLoad(ms){ms=(ms===undefined)?3000:ms;if(this._listT)clearTimeout(this._listT);if(!ms){this.setState({listLoading:false});return;}this.setState({listLoading:true});this._listT=setTimeout(()=>this.setState({listLoading:false}),ms);}
   viewItemCount(view){const db=this.state.db;switch(view){case 'dashboard':return this.selectVisible().length;case 'kb':return (db.kb||[]).length;case 'catalog':return (db.services||[]).length;case 'assets':return (db.assets||[]).length;default:return 0;}}
@@ -256,7 +307,7 @@ class Component extends DCLogic {
   notifyCreatedTicket(t){this.showPush({id:(this._pid=(this._pid||0)+1),uid:t.uid,todoId:null,title:'Neues Ticket · '+this.displayId(t),summary:t.summary,kind:'created'});}
   notifyCreatedTodo(td){this.showPush({id:(this._pid=(this._pid||0)+1),uid:null,todoId:td.id,title:'Neues ToDo',summary:td.title,kind:'created'});}
   notifyAssignedToMe(t){this.showPush({id:(this._pid=(this._pid||0)+1),uid:t.uid,todoId:null,title:'Dir zugewiesen · '+this.displayId(t),summary:t.summary,kind:'assigned'});}
-  componentWillUnmount(){window.removeEventListener('resize',this.onResize);window.removeEventListener('keydown',this.onKey);if(this._sla)clearInterval(this._sla);if(this._reminders)clearInterval(this._reminders);if(window.visualViewport&&this.onVV)window.visualViewport.removeEventListener('resize',this.onVV);}
+  componentWillUnmount(){window.removeEventListener('resize',this.onResize);window.removeEventListener('keydown',this.onKey);if(this._sla)clearInterval(this._sla);if(this._reminders)clearInterval(this._reminders);if(window.visualViewport&&this.onVV)window.visualViewport.removeEventListener('resize',this.onVV);this.aiStopWakeListening();this.aiStopCommandCapture();}
 
   /* ---------- toasts / undo ---------- */
   toast(msg,type){const id=(this._tid=(this._tid||0)+1);this.setState(s=>({toasts:[...s.toasts,{id,msg,type}]}));setTimeout(()=>this.setState(s=>({toasts:s.toasts.filter(t=>t.id!==id)})),3400);}
@@ -364,6 +415,252 @@ class Component extends DCLogic {
   async configureSync(cfg){const clean={url:(cfg.url||'').trim(),anonKey:(cfg.anonKey||'').trim(),code:(cfg.code||'').trim()};if(!clean.url||!clean.anonKey||!clean.code){this.toast('Bitte URL, Anon-Key und Sync-Code angeben.','err');return;}this.cfg=clean;this._saveSyncCfg(clean);this.setState({sync:{configured:true,status:'syncing',lastAt:null,error:null}});try{const remote=await this.pull(clean);if(remote){this.adoptRemote(remote.data,remote.updatedAt);}else{this.meta={updatedAt:Date.now()};this._saveSyncMeta(this.meta);await this.pushRemote(clean,this.state.db,this.meta.updatedAt);this.dirty=false;}this.setState({sync:{configured:true,status:'ok',lastAt:Date.now(),error:null}});this.toast('Cloud-Sync verbunden.','ok');}catch(e){const msg=String(e.message||e);this.setState({sync:{configured:true,status:'error',lastAt:null,error:msg}});this.toast('Sync fehlgeschlagen: '+msg,'err');}}
   async syncNow(){if(!this.cfg)return;if(this.dirty)await this.flushPush();else await this.runStartupSync();}
   disconnectSync(){this.cfg=null;this._saveSyncCfg(null);this.dirty=false;this.setState({sync:{configured:false,status:'disabled',lastAt:null,error:null}});this.toast('Cloud-Sync getrennt.','ok');}
+
+  /* ================================================================
+     APHELIOS — KI-Assistent
+     Aufgeteilt in klar getrennte Bereiche (Ersatz für services/*-Ordner,
+     da diese Single-File-App keinen Bundler hat):
+       AI.config    - Ein-/Ausschalten, Spracheinstellungen (localStorage)
+       AI.history   - Unterhaltungsverlauf (localStorage, Liste/Suche/Export)
+       AI.context   - aktueller App-Zustand für die KI (Seite, Nutzer, Ticket…)
+       AI.rag       - lokale Stichwortsuche über Wissensartikel + Hilfetexte
+       AI.tools     - Funktionsaufrufe, die die KI ausführen darf
+       AI.chat      - Streaming-Anfrage an die Supabase Edge Function
+       AI.voice     - Wake-Word, Spracheingabe, Sprachausgabe
+     Die Edge Function (supabase/functions/aphelios-chat) kennt keine
+     Tickets/ToDos - sie ist nur ein sicherer Anthropic-Relay. Alle Tool-
+     Aufrufe werden hier im Browser ausgeführt, mit denselben Methoden
+     (createTicket, assign, …) und damit denselben Rollen-/Sichtbarkeits-
+     Regeln wie die restliche App.
+     ================================================================ */
+
+  /* ---------- AI.config ---------- */
+  _loadAiCfg(){const def={enabled:false,voiceEnabled:false,wakeWordEnabled:false,model:'claude-sonnet-5'};try{const r=localStorage.getItem(this.AI_CFG_KEY);if(r){const c=JSON.parse(r);if(c)return{...def,...c};}}catch(e){}return def;}
+  _saveAiCfg(c){try{localStorage.setItem(this.AI_CFG_KEY,JSON.stringify(c));}catch(e){}}
+  setAiCfg(patch){const next={...this.state.aiCfg,...patch};this.setState({aiCfg:next});this._saveAiCfg(next);
+    if(patch.wakeWordEnabled===false)this.aiStopWakeListening();
+    if(patch.wakeWordEnabled===true&&patch.voiceEnabled!==false&&this.state.aiCfg.voiceEnabled)this.aiStartWakeListening();}
+  aiFunctionUrl(){if(!this.cfg)return null;return this.normUrl(this.cfg.url)+'/functions/v1/aphelios-chat';}
+
+  /* ---------- AI.history ---------- */
+  _loadAiHistory(){try{const r=localStorage.getItem(this.AI_HIST_KEY);if(r){const h=JSON.parse(r);if(Array.isArray(h))return h;}}catch(e){}return[];}
+  _saveAiHistory(list){try{localStorage.setItem(this.AI_HIST_KEY,JSON.stringify(list.slice(0,100)));}catch(e){}}
+  aiNewConversation(){this.setState({aiConvo:[],aiConvoId:null,aiStreamText:'',aiPendingConfirm:null,aiHistoryOpen:false});}
+  aiPersistConvo(){if(!this.state.aiConvo.length)return;const list=this._loadAiHistory();const id=this.state.aiConvoId||('ac_'+Date.now().toString(36));
+    const title=(this.state.aiConvo.find(m=>m.role==='user')||{}).text||'Unterhaltung';
+    const entry={id,title:title.slice(0,60),createdAt:list.find(x=>x.id===id)?.createdAt||Date.now(),updatedAt:Date.now(),messages:this.state.aiConvo};
+    const idx=list.findIndex(x=>x.id===id);if(idx>-1)list[idx]=entry;else list.unshift(entry);
+    this._saveAiHistory(list);if(!this.state.aiConvoId)this.setState({aiConvoId:id});}
+  aiLoadConversation(id){const list=this._loadAiHistory();const c=list.find(x=>x.id===id);if(!c)return;this.setState({aiConvo:c.messages,aiConvoId:c.id,aiHistoryOpen:false,aiStreamText:'',aiPendingConfirm:null});}
+  aiDeleteConversation(id){this._saveAiHistory(this._loadAiHistory().filter(x=>x.id!==id));if(this.state.aiConvoId===id)this.aiNewConversation();this.forceUpdate();}
+  aiExportConversation(id){const c=this._loadAiHistory().find(x=>x.id===id);if(!c)return;const blob=new Blob([JSON.stringify(c,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='aphelios-'+c.id+'.json';a.click();}
+
+  /* ---------- AI.context ---------- */
+  aiGatherContext(){const ui=this.state.ui,db=this.state.db;
+    const t=(ui.view==='detail'&&ui.current)?db.tickets.find(x=>x.uid===ui.current):null;
+    return{page:ui.view,user:ui.user,role:ui.role,
+      selectedTicket:t?{id:this.displayId(t),uid:t.uid,summary:t.summary,status:t.status,priority:t.priority,responsibleUser:t.responsibleUser}:null,
+      filters:ui.filters||{},quick:ui.quick||null,searchQuery:ui.searchQuery||'',modalOpen:this.state.modal?this.state.modal.kind:null,
+      openTicketCount:this.selectVisible().filter(x=>this.STATUS[x.status].open).length,
+      openTodoCount:(db.todos||[]).filter(x=>!x.done).length};}
+
+  /* ---------- AI.rag: leichte Stichwortsuche über Wissensartikel + feste Hilfetexte ---------- */
+  aiHelpDocs(){return[
+    {title:'Suche benutzen',body:'Die Suchleiste oben (Lupe) durchsucht Tickets und Wissensartikel gleichzeitig nach Stichworten in Betreff, Beschreibung, Kategorie und Verlauf. Ergebnisse erscheinen sofort auf der Seite „Suche".'},
+    {title:'Ticket anlegen',body:'Über den Button „Neues Ticket" (Übersicht oder Tickets-Liste) öffnet sich ein Formular für Betreff, Beschreibung, Typ, Priorität, Kategorie, Betroffene Person und optional Verantwortliche/n.'},
+    {title:'Nutzer wechseln',body:'Unter Setup → „Angemeldet als" lässt sich der aktive Nutzer und die Rolle (Agent/Nutzer) wechseln. Als Agent sieht man alle Tickets, als Nutzer nur eigene gemeldete oder zugewiesene.'},
+    {title:'Priorität und SLA',body:'Jede Priorität (Niedrig/Mittel/Hoch/Kritisch) hat eigene Reaktions- und Lösungsfristen. Läuft die Frist bald ab oder ist sie überschritten, erscheint ein farblicher Hinweis am Ticket.'},
+    {title:'Cloud-Sync einrichten',body:'Unter Setup → „Cloud-Sync" lässt sich eine eigene Supabase-Instanz verbinden (URL, Anon-Key, Sync-Code), um Daten geräteübergreifend abzugleichen.'},
+    {title:'Benachrichtigungen',body:'Unter Setup → „Benachrichtigungen" lassen sich System-Hinweise zu auslaufenden Tickets und fälligen ToDos aktivieren.'},
+    {title:'ToDo-Liste',body:'Im Tab „ToDo" lassen sich eigene Aufgaben mit Titel, Fälligkeitsdatum, Priorität und Ersteller anlegen, abhaken und bearbeiten.'},
+  ];}
+  aiScoreDoc(query,text){const q=query.toLowerCase().split(/\s+/).filter(w=>w.length>2);if(!q.length)return 0;const t=text.toLowerCase();let s=0;q.forEach(w=>{if(t.includes(w))s+=1;});return s/q.length;}
+  aiRetrieve(query,k){const docs=[...this.aiHelpDocs().map(d=>({...d,kind:'help'})),
+      ...this.state.db.kb.map(a=>({title:a.title,body:a.versions[a.versions.length-1].body,kind:'kb',category:a.category}))];
+    return docs.map(d=>({...d,score:this.aiScoreDoc(query,d.title+' '+d.body)})).filter(d=>d.score>0).sort((a,b)=>b.score-a.score).slice(0,k||3);}
+
+  /* ---------- AI.tools: Werkzeuge, die die KI aufrufen darf ---------- */
+  AI_DESTRUCTIVE=['deleteTicket','deleteTodo'];
+  aiResolveTicket(ref){const db=this.state.db;if(!ref){const ctx=this.aiGatherContext();if(ctx.selectedTicket)return db.tickets.find(t=>t.uid===ctx.selectedTicket.uid);return null;}
+    const byUid=db.tickets.find(t=>t.uid===ref);if(byUid)return byUid;
+    const clean=String(ref).toUpperCase().replace(/\s+/g,'');return db.tickets.find(t=>this.displayId(t).toUpperCase().replace(/\s+/g,'')===clean)||null;}
+  aiResolveTodo(ref){const list=this.state.db.todos||[];if(!ref)return null;const byId=list.find(t=>t.id===ref);if(byId)return byId;
+    const ql=String(ref).toLowerCase();return list.find(t=>t.title.toLowerCase().includes(ql))||null;}
+  AI_TOOL_DEFS(){return[
+    {name:'createTicket',description:'Legt ein neues Ticket an.',input_schema:{type:'object',properties:{
+      summary:{type:'string',description:'Kurzer Betreff'},description:{type:'string'},
+      category:{type:'string'},priority:{type:'string',enum:this.PRIORITY_ORDER},
+      type:{type:'string',enum:this.TYPE_ORDER},affectedUser:{type:'string'},responsibleUser:{type:'string'}},required:['summary']}},
+    {name:'updateTicketStatus',description:'Ändert den Status eines Tickets.',input_schema:{type:'object',properties:{
+      ticketRef:{type:'string',description:'Ticket-ID (z. B. INC-0001) oder leer für das aktuell geöffnete Ticket'},
+      status:{type:'string',enum:this.STATUS_ORDER}},required:['status']}},
+    {name:'updateTicketPriority',description:'Ändert die Priorität eines Tickets.',input_schema:{type:'object',properties:{
+      ticketRef:{type:'string'},priority:{type:'string',enum:this.PRIORITY_ORDER}},required:['priority']}},
+    {name:'assignTicket',description:'Weist ein Ticket einer Person zu.',input_schema:{type:'object',properties:{
+      ticketRef:{type:'string'},responsibleUser:{type:'string',description:'Name der Person'}},required:['responsibleUser']}},
+    {name:'addTicketComment',description:'Fügt einem Ticket einen Kommentar hinzu.',input_schema:{type:'object',properties:{
+      ticketRef:{type:'string'},text:{type:'string'}},required:['text']}},
+    {name:'deleteTicket',description:'Löscht ein Ticket unwiderruflich. Erfordert Bestätigung durch den Nutzer.',input_schema:{type:'object',properties:{
+      ticketRef:{type:'string'}},required:[]}},
+    {name:'searchTickets',description:'Sucht/filtert Tickets und gibt eine kurze Liste zurück.',input_schema:{type:'object',properties:{
+      query:{type:'string'},status:{type:'string',enum:this.STATUS_ORDER},priority:{type:'string',enum:this.PRIORITY_ORDER},
+      category:{type:'string'},affectedUser:{type:'string'}},required:[]}},
+    {name:'createTodo',description:'Legt einen neuen ToDo-Eintrag an.',input_schema:{type:'object',properties:{
+      title:{type:'string'},description:{type:'string'},dueAt:{type:'string',description:'Datum als YYYY-MM-DD'},
+      priority:{type:'string',enum:this.PRIORITY_ORDER}},required:['title']}},
+    {name:'updateTodo',description:'Bearbeitet einen bestehenden ToDo-Eintrag.',input_schema:{type:'object',properties:{
+      todoRef:{type:'string',description:'ToDo-ID oder Stichwort aus dem Titel'},title:{type:'string'},description:{type:'string'},
+      dueAt:{type:'string'},priority:{type:'string',enum:this.PRIORITY_ORDER}},required:['todoRef']}},
+    {name:'toggleTodoDone',description:'Markiert einen ToDo-Eintrag als erledigt oder wieder offen.',input_schema:{type:'object',properties:{
+      todoRef:{type:'string'}},required:['todoRef']}},
+    {name:'deleteTodo',description:'Löscht einen ToDo-Eintrag unwiderruflich. Erfordert Bestätigung durch den Nutzer.',input_schema:{type:'object',properties:{
+      todoRef:{type:'string'}},required:['todoRef']}},
+    {name:'searchTodos',description:'Sucht/filtert ToDo-Einträge.',input_schema:{type:'object',properties:{
+      query:{type:'string'},priority:{type:'string',enum:this.PRIORITY_ORDER},done:{type:'boolean'}},required:[]}},
+    {name:'navigate',description:'Wechselt zu einer anderen Seite der Anwendung.',input_schema:{type:'object',properties:{
+      page:{type:'string',enum:['dashboard','list','todo','kb','catalog','assets','settings']}},required:['page']}},
+    {name:'showStatistics',description:'Liefert aktuelle Kennzahlen (offene Tickets, eskaliert, gelöst diese Woche, Ø Bewertung).',input_schema:{type:'object',properties:{}}},
+  ];}
+  aiIsDestructive(name){return this.AI_DESTRUCTIVE.includes(name);}
+  aiExecuteTool(name,input){input=input||{};
+    switch(name){
+      case 'createTicket':{const uid=this.createTicket({summary:input.summary,description:input.description||'',category:input.category,priority:input.priority,type:input.type,affectedUser:input.affectedUser,responsibleUser:input.responsibleUser});
+        const t=this.state.db.tickets.find(x=>x.uid===uid);return{ok:true,message:'Ticket '+(t?this.displayId(t):uid)+' angelegt.'};}
+      case 'updateTicketStatus':{const t=this.aiResolveTicket(input.ticketRef);if(!t)return{ok:false,message:'Ticket nicht gefunden.'};this.changeStatus(t.uid,{status:input.status});return{ok:true,message:'Status von '+this.displayId(t)+' → '+this.STATUS[input.status].label+'.'};}
+      case 'updateTicketPriority':{const t=this.aiResolveTicket(input.ticketRef);if(!t)return{ok:false,message:'Ticket nicht gefunden.'};this.update((n,f)=>{const x=f(t.uid);if(x){x.priority=input.priority;x.updatedAt=Date.now();}});return{ok:true,message:'Priorität von '+this.displayId(t)+' → '+this.PRIORITY[input.priority].label+'.'};}
+      case 'assignTicket':{const t=this.aiResolveTicket(input.ticketRef);if(!t)return{ok:false,message:'Ticket nicht gefunden.'};const user=this.state.db.users.find(u=>u.toLowerCase()===String(input.responsibleUser||'').toLowerCase())||input.responsibleUser;this.assign(t.uid,{responsibleUser:user,responsibleRole:null});return{ok:true,message:this.displayId(t)+' an '+user+' zugewiesen.'};}
+      case 'addTicketComment':{const t=this.aiResolveTicket(input.ticketRef);if(!t)return{ok:false,message:'Ticket nicht gefunden.'};this.addComment(t.uid,input.text);return{ok:true,message:'Kommentar zu '+this.displayId(t)+' hinzugefügt.'};}
+      case 'deleteTicket':{const t=this.aiResolveTicket(input.ticketRef);if(!t)return{ok:false,message:'Ticket nicht gefunden.'};this.deleteTicket(t.uid);return{ok:true,message:'Ticket '+this.displayId(t)+' gelöscht.'};}
+      case 'searchTickets':{let list=this.selectVisible();if(input.status)list=list.filter(t=>t.status===input.status);if(input.priority)list=list.filter(t=>t.priority===input.priority);if(input.category)list=list.filter(t=>t.category===input.category);if(input.affectedUser)list=list.filter(t=>t.affectedUser.toLowerCase()===String(input.affectedUser).toLowerCase());if(input.query)list=list.filter(t=>this.ticketMatches(t,input.query));
+        const items=list.slice(0,8).map(t=>this.displayId(t)+' — '+t.summary+' ('+this.STATUS[t.status].label+', '+this.PRIORITY[t.priority].label+')');
+        return{ok:true,message:list.length+' Ticket(s) gefunden.',items,count:list.length};}
+      case 'createTodo':{let created=null;const orig=this.addTodo.bind(this);this.update(next=>{if(!Array.isArray(next.todos))next.todos=[];created={id:'D'+Date.now().toString(36),title:(input.title||'').trim(),description:input.description||'',createdAt:Date.now(),dueAt:this.parseDateInput(input.dueAt),priority:input.priority||'medium',author:this.state.ui.user,done:false};next.todos.push(created);});if(created)this.notifyCreatedTodo&&this.notifyCreatedTodo(created);return{ok:true,message:'ToDo „'+(created&&created.title)+'" angelegt.'};}
+      case 'updateTodo':{const td=this.aiResolveTodo(input.todoRef);if(!td)return{ok:false,message:'ToDo nicht gefunden.'};const patch={};if(input.title)patch.title=input.title;if(input.description!==undefined)patch.description=input.description;if(input.dueAt)patch.dueAt=this.parseDateInput(input.dueAt);if(input.priority)patch.priority=input.priority;this.update(next=>{const x=(next.todos||[]).find(t=>t.id===td.id);if(x)Object.assign(x,patch);});return{ok:true,message:'ToDo „'+td.title+'" aktualisiert.'};}
+      case 'toggleTodoDone':{const td=this.aiResolveTodo(input.todoRef);if(!td)return{ok:false,message:'ToDo nicht gefunden.'};this.update(next=>{const x=(next.todos||[]).find(t=>t.id===td.id);if(x)x.done=!x.done;});return{ok:true,message:'ToDo „'+td.title+'" '+(td.done?'wieder geöffnet.':'als erledigt markiert.')};}
+      case 'deleteTodo':{const td=this.aiResolveTodo(input.todoRef);if(!td)return{ok:false,message:'ToDo nicht gefunden.'};this.update(next=>{next.todos=(next.todos||[]).filter(t=>t.id!==td.id);});return{ok:true,message:'ToDo „'+td.title+'" gelöscht.'};}
+      case 'searchTodos':{let list=this.state.db.todos||[];if(input.priority)list=list.filter(t=>t.priority===input.priority);if(typeof input.done==='boolean')list=list.filter(t=>!!t.done===input.done);if(input.query){const ql=input.query.toLowerCase();list=list.filter(t=>t.title.toLowerCase().includes(ql)||(t.description||'').toLowerCase().includes(ql));}
+        const items=list.slice(0,8).map(t=>t.title+' ('+this.PRIORITY[t.priority].label+(t.done?', erledigt':'')+')');
+        return{ok:true,message:list.length+' ToDo(s) gefunden.',items,count:list.length};}
+      case 'navigate':{this.go(input.page);return{ok:true,message:'Zu „'+input.page+'" gewechselt.'};}
+      case 'showStatistics':{const list=this.selectVisible();const esc=this.state.db.settings.escalationDays;
+        const open=list.filter(t=>this.STATUS[t.status].open).length;const escalated=list.filter(t=>this.isEscalated(t,esc)).length;
+        const wk=Date.now()-7*86400000;const resolvedWk=list.filter(t=>(t.resolvedAt&&t.resolvedAt>=wk)||(t.closedAt&&t.closedAt>=wk)).length;
+        const rated=list.filter(t=>t.rating);const avg=rated.length?(rated.reduce((a,t)=>a+t.rating.stars,0)/rated.length).toFixed(1):'—';
+        return{ok:true,message:'Offen: '+open+', Eskaliert: '+escalated+', Gelöst diese Woche: '+resolvedWk+', Ø Bewertung: '+avg};}
+      default:return{ok:false,message:'Unbekanntes Werkzeug: '+name};
+    }}
+  aiToolConfirmLabel(name,input){
+    if(name==='deleteTicket'){const t=this.aiResolveTicket(input.ticketRef);return 'Ticket '+(t?this.displayId(t)+' — '+t.summary:'(nicht gefunden)')+' wirklich unwiderruflich löschen?';}
+    if(name==='deleteTodo'){const td=this.aiResolveTodo(input.todoRef);return 'ToDo „'+(td?td.title:'(nicht gefunden)')+'" wirklich unwiderruflich löschen?';}
+    return 'Diese Aktion wirklich durchführen?';}
+
+  /* ---------- AI.chat: System-Prompt, Streaming-Request, Tool-Calling-Schleife ---------- */
+  aiSystemPrompt(retrieved){const ctx=this.aiGatherContext();
+    let s='Du bist Aphelios, der freundliche, professionelle KI-Assistent von HeimDesk (Ticket- und ToDo-Verwaltung). '
+      +'Antworte auf Deutsch, kurz und klar; erkläre nur ausführlich, wenn ausdrücklich danach gefragt wird. '
+      +'Nutze die bereitgestellten Werkzeuge, um echte Aktionen auszuführen, statt sie nur zu beschreiben. '
+      +'Wenn eine wichtige Angabe fehlt (z. B. Betreff oder Priorität beim Anlegen), frage kurz nach statt zu raten. '
+      +'Löschen/Archivieren wird vom System automatisch mit einer Bestätigungsfrage abgesichert - führe es einfach über das Werkzeug aus. '
+      +'Wörter wie "dieses Ticket" oder "das" beziehen sich auf den aktuellen Kontext unten.\n\nAktueller Kontext:\n'+JSON.stringify(ctx);
+    if(retrieved&&retrieved.length)s+='\n\nRelevante interne Hilfe-/Wissensartikel (bei Bedarf kurz zitieren):\n'+retrieved.map(d=>'- '+d.title+': '+d.body).join('\n');
+    return s;}
+  async aiStreamRequest(body,onTextDelta){const url=this.aiFunctionUrl();
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json',apikey:this.cfg.anonKey,Authorization:'Bearer '+this.cfg.anonKey},body:JSON.stringify(body)});
+    if(!res.ok||!res.body){const t=await res.text().catch(()=>'');let msg='HTTP '+res.status;try{const j=JSON.parse(t);if(j.error)msg=j.error;}catch(e){}throw new Error(msg);}
+    const reader=res.body.getReader(),decoder=new TextDecoder();let buf='';const blocks=[];let stopReason=null;
+    while(true){const{done,value}=await reader.read();if(done)break;buf+=decoder.decode(value,{stream:true});let idx;
+      while((idx=buf.indexOf('\n\n'))>=0){const chunk=buf.slice(0,idx);buf=buf.slice(idx+2);
+        let ev=null,dataStr='';chunk.split('\n').forEach(l=>{if(l.startsWith('event:'))ev=l.slice(6).trim();else if(l.startsWith('data:'))dataStr+=l.slice(5).trim();});
+        if(!dataStr)continue;let data;try{data=JSON.parse(dataStr);}catch(e){continue;}
+        if(ev==='content_block_start'){blocks[data.index]=data.content_block.type==='tool_use'?{type:'tool_use',id:data.content_block.id,name:data.content_block.name,inputJson:''}:{type:'text',text:''};}
+        else if(ev==='content_block_delta'){const b=blocks[data.index];if(!b)continue;
+          if(data.delta.type==='text_delta'){b.text+=data.delta.text;onTextDelta(blocks.filter(Boolean).map(x=>x.type==='text'?x.text:'').join(''));}
+          else if(data.delta.type==='input_json_delta')b.inputJson+=data.delta.partial_json;}
+        else if(ev==='message_delta'){if(data.delta&&data.delta.stop_reason)stopReason=data.delta.stop_reason;}
+        else if(ev==='error'){throw new Error((data.error&&data.error.message)||'Stream-Fehler');}
+      }}
+    return{blocks:blocks.filter(Boolean).map(b=>b.type==='tool_use'?{type:'tool_use',id:b.id,name:b.name,input:(()=>{try{return JSON.parse(b.inputJson||'{}');}catch(e){return{};}})()}:{type:'text',text:b.text}),stopReason};}
+  aiPushDisplay(msg){this.setState(s=>({aiConvo:[...s.aiConvo,{ts:Date.now(),...msg}]}));}
+  async aiSend(userText){if(!userText||!userText.trim())return;
+    if(!this.cfg){this.aiPushDisplay({role:'system',text:'Bitte zuerst Cloud-Sync in den Einstellungen einrichten (Aphelios nutzt dieselbe Supabase-Verbindung).'});return;}
+    userText=userText.trim();this._aiRaw=this._aiRaw||[];
+    this._aiRaw.push({role:'user',content:userText});
+    this.aiPushDisplay({role:'user',text:userText});
+    this.setState({aiThinking:true,aiStreamText:'',aiError:null,aiInput:''});
+    await this.aiRunLoop();}
+  async aiRunLoop(){const retrieved=this.aiRetrieve((this._aiRaw[this._aiRaw.length-1]&&typeof this._aiRaw[this._aiRaw.length-1].content==='string')?this._aiRaw[this._aiRaw.length-1].content:'',3);
+    const system=this.aiSystemPrompt(retrieved);const tools=this.AI_TOOL_DEFS();
+    let hops=0;const MAX_HOPS=4;
+    try{
+      while(hops<MAX_HOPS){hops++;
+        const{blocks,stopReason}=await this.aiStreamRequest({messages:this._aiRaw,system,tools,model:this.state.aiCfg.model},txt=>this.setState({aiStreamText:txt}));
+        this._aiRaw.push({role:'assistant',content:blocks});
+        const textPart=blocks.filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+        const toolCalls=blocks.filter(b=>b.type==='tool_use');
+        if(textPart)this.aiPushDisplay({role:'assistant',text:textPart,citations:retrieved.map(r=>r.title)});
+        this.setState({aiStreamText:''});
+        if(!toolCalls.length){this.setState({aiThinking:false});this.aiSpeak(textPart);this.aiPersistConvo();return;}
+        const destructive=toolCalls.find(tc=>this.aiIsDestructive(tc.name));
+        if(destructive){this.setState({aiThinking:false,aiPendingConfirm:{toolUseId:destructive.id,name:destructive.name,input:destructive.input,otherCalls:toolCalls.filter(tc=>tc!==destructive)}});return;}
+        const results=toolCalls.map(tc=>{const r=this.aiExecuteTool(tc.name,tc.input);return{type:'tool_result',tool_use_id:tc.id,content:JSON.stringify(r)};});
+        toolCalls.forEach((tc,i)=>this.aiPushDisplay({role:'tool',text:JSON.parse(results[i].content).message,toolName:tc.name}));
+        this._aiRaw.push({role:'user',content:results});
+      }
+      this.setState({aiThinking:false});this.aiPersistConvo();
+    }catch(e){this.setState({aiThinking:false,aiStreamText:'',aiError:String(e.message||e)});this.aiPushDisplay({role:'system',text:'Fehler: '+String(e.message||e)});}}
+  async aiResolveConfirm(accepted){const pc=this.state.aiPendingConfirm;if(!pc)return;this.setState({aiPendingConfirm:null,aiThinking:true});
+    let result;if(accepted)result=this.aiExecuteTool(pc.name,pc.input);else result={ok:false,message:'Vom Nutzer abgebrochen.'};
+    this.aiPushDisplay({role:'tool',text:result.message,toolName:pc.name});
+    const results=[{type:'tool_result',tool_use_id:pc.toolUseId,content:JSON.stringify(result)}];
+    (pc.otherCalls||[]).forEach(tc=>{const r=this.aiExecuteTool(tc.name,tc.input);this.aiPushDisplay({role:'tool',text:r.message,toolName:tc.name});results.push({type:'tool_result',tool_use_id:tc.id,content:JSON.stringify(r)});});
+    this._aiRaw.push({role:'user',content:results});
+    await this.aiRunLoop();}
+
+  /* ---------- AI.render: Markdown/Codeblöcke/Tabellen (marked + highlight.js per CDN, wie React/Babel) ---------- */
+  aiLoadMarkdownLibs(){if(this._aiLibsPromise)return this._aiLibsPromise;
+    this._aiLibsPromise=new Promise(resolve=>{let remaining=2;const done=()=>{remaining--;if(remaining<=0)resolve();};
+      if(window.marked){done();}else{const s=document.createElement('script');s.src='https://unpkg.com/marked@12.0.2/marked.min.js';s.onload=done;s.onerror=done;document.head.appendChild(s);}
+      if(window.hljs){done();}else{const s=document.createElement('script');s.src='https://unpkg.com/@highlightjs/cdn-assets@11.10.0/highlight.min.js';
+        s.onload=()=>{const l=document.createElement('link');l.rel='stylesheet';l.href='https://unpkg.com/@highlightjs/cdn-assets@11.10.0/styles/github-dark.min.css';document.head.appendChild(l);done();};s.onerror=done;document.head.appendChild(s);}});
+    return this._aiLibsPromise;}
+  aiSanitizeHtml(html){return String(html).replace(/<script[\s\S]*?<\/script>/gi,'').replace(/ on[a-z]+="[^"]*"/gi,'').replace(/ on[a-z]+='[^']*'/gi,'').replace(/javascript:/gi,'');}
+  aiRenderMarkdown(text){const h=React.createElement;if(!text)return null;
+    if(window.marked){let html;try{html=window.marked.parse(text,{breaks:true});}catch(e){html=text;}
+      html=this.aiSanitizeHtml(html);
+      return h('div',{className:'ai-md',dangerouslySetInnerHTML:{__html:html},ref:el=>{if(el&&window.hljs){el.querySelectorAll('pre code').forEach(b=>{if(!b.dataset.hl){try{window.hljs.highlightElement(b);}catch(e){}b.dataset.hl='1';}});}}});}
+    return h('div',{className:'ai-md'},text.split('\n').map((line,i)=>h('div',{key:i},line)));}
+
+  /* ---------- AI.voice: Wake-Word, Sprachein-/ausgabe ---------- */
+  aiSpeak(text){if(!this.state.aiCfg.voiceEnabled||!text)return;if(typeof speechSynthesis==='undefined')return;
+    try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text.replace(/[*_#`]/g,''));u.lang='de-DE';u.rate=1;u.pitch=1.02;
+      const voices=speechSynthesis.getVoices();const de=voices.find(v=>/de[-_]DE/i.test(v.lang))||voices.find(v=>/de/i.test(v.lang));if(de)u.voice=de;
+      u.onstart=()=>this.setState({aiVoice:'speaking'});
+      u.onend=()=>this.setState({aiVoice:this.state.aiWakeOn?'wake':'idle'});
+      speechSynthesis.speak(u);}catch(e){}}
+  aiSpeechSupported(){return !!(window.SpeechRecognition||window.webkitSpeechRecognition);}
+  aiToggleChat(){this.setState(s=>({aiOpen:!s.aiOpen}));if(!this.state.aiOpen)this.aiLoadMarkdownLibs();}
+  aiStartWakeListening(){if(this._aiWakeRecog)return;const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){this.toast('Spracherkennung wird von diesem Browser nicht unterstützt (nur Chrome/Edge).','err');return;}
+    const rec=new SR();rec.continuous=true;rec.interimResults=true;rec.lang='de-DE';
+    rec.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;if(/aphelios/i.test(t))this.aiWakeTriggered();};
+    rec.onerror=()=>{};rec.onend=()=>{if(this._aiWakeShouldRun){try{rec.start();}catch(e){}}};
+    this._aiWakeShouldRun=true;this._aiWakeRecog=rec;this.setState({aiWakeOn:true,aiVoice:'wake'});try{rec.start();}catch(e){}}
+  aiStopWakeListening(){this._aiWakeShouldRun=false;if(this._aiWakeRecog){try{this._aiWakeRecog.stop();}catch(e){}this._aiWakeRecog=null;}
+    this.setState({aiWakeOn:false});if(this.state.aiVoice==='wake')this.setState({aiVoice:'idle'});}
+  aiWakeTriggered(){this.aiStopWakeListening();this.setState({aiOpen:true,aiVoice:'listening'});this.aiLoadMarkdownLibs();this.aiStartCommandCapture();}
+  aiStartCommandCapture(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;
+    const rec=new SR();rec.continuous=false;rec.interimResults=true;rec.lang='de-DE';let finalText='';
+    rec.onresult=e=>{let interim='',fin='';for(let i=0;i<e.results.length;i++){if(e.results[i].isFinal)fin+=e.results[i][0].transcript;else interim+=e.results[i][0].transcript;}
+      this.setState({aiInput:(fin+interim).trim()});if(fin)finalText=fin;};
+    rec.onerror=()=>{};
+    rec.onend=async()=>{this.setState({aiVoice:'thinking'});const text=(finalText||this.state.aiInput||'').trim();this._aiCmdRecog=null;
+      if(!text){this.setState({aiVoice:this.state.aiCfg.wakeWordEnabled?'wake':'idle'});if(this.state.aiCfg.wakeWordEnabled)this.aiStartWakeListening();return;}
+      if(/^(danke\s*aphelios|stop|beenden|gespräch\s*beenden|schlafmodus)[.!]?$/i.test(text.trim())){
+        this.aiPushDisplay({role:'system',text:'Bis bald! 👋'});this.setState({aiInput:'',aiVoice:this.state.aiCfg.wakeWordEnabled?'wake':'idle'});
+        if(this.state.aiCfg.wakeWordEnabled)this.aiStartWakeListening();return;}
+      await this.aiSend(text);
+      if(this.state.aiCfg.voiceEnabled&&!this.state.aiPendingConfirm)this.aiStartCommandCapture();};
+    this._aiCmdRecog=rec;this.setState({aiVoice:'listening'});try{rec.start();}catch(e){}}
+  aiStopCommandCapture(){if(this._aiCmdRecog){try{this._aiCmdRecog.stop();}catch(e){}this._aiCmdRecog=null;}}
 
   /* ---------- RELOAD (cloud pull → else local refresh) ---------- */
   async onReload(){if(this.state.reloading)return;
@@ -476,6 +773,9 @@ class Component extends DCLogic {
       onReload:()=>this.onReload(),reloadTitle,
       reloadIcon:h('span',{className:'lx-spin',style:{display:'flex',transform:'rotate('+(this.state.spin||0)+'deg)'}},this.icon('reload',22,1.6)),
       fabStyle:{position:'fixed',right:this.state.mobile?'18px':'32px',bottom:this.state.mobile?'22px':'32px',zIndex:55,width:'58px',height:'58px',borderRadius:'9999px',border:'1px solid '+fabBorder,background:'#000',color:fabBorder,display:'flex',alignItems:'center',justifyContent:'center'},
+      onAiToggle:()=>this.aiToggleChat(),
+      aiIcon:h('span',{className:'ai-badge'+(this.state.aiVoice!=='idle'?' ai-badge-active':'')},h('span',{className:'ai-badge-dot'}),h('span',{className:'ai-badge-dot'}),h('span',{className:'ai-badge-dot'})),
+      aiPanel:this.renderAiChat(),
     };
   }
 
@@ -535,6 +835,109 @@ class Component extends DCLogic {
           h('div',{style:{fontFamily:C.serif,fontSize:'16px',lineHeight:1.3,color:C.bodyStrong,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},p.summary)),
         h('button',{onClick:e=>{e.stopPropagation();this.dismissPush(p.id);},style:{flex:'none',width:'26px',height:'26px',border:'none',background:'transparent',color:C.mutedSoft,display:'flex',alignItems:'center',justifyContent:'center'}},this.icon('x',15,1.8))))):null;
     return h(React.Fragment,null,toasts,undo,pushes,this.renderModal());}
+
+  /* ---------- AI.chat: Regenerate / Stop / Copy ---------- */
+  aiStop(){if(this._aiAbort)try{this._aiAbort.abort();}catch(e){}this.setState({aiThinking:false,aiStreamText:''});}
+  aiRegenerate(){if(this.state.aiThinking)return;const convo=this.state.aiConvo;let cut=-1;
+    for(let i=convo.length-1;i>=0;i--){if(convo[i].role==='user'){cut=i;break;}}if(cut<0)return;
+    this.setState({aiConvo:convo.slice(0,cut+1),aiStreamText:'',aiThinking:true,aiError:null});
+    const raw=this._aiRaw||[];let rawCut=-1;
+    for(let i=raw.length-1;i>=0;i--){if(raw[i].role==='user'&&typeof raw[i].content==='string'){rawCut=i;break;}}
+    if(rawCut>=0)this._aiRaw=raw.slice(0,rawCut+1);
+    this.aiRunLoop();}
+  aiCopy(text){try{navigator.clipboard&&navigator.clipboard.writeText(text);this.toast('In Zwischenablage kopiert.','ok');}catch(e){}}
+
+  /* ---------- AI.render: Chat-Panel (Glasmorphism) ---------- */
+  aiVoiceStatusText(){return{idle:'',wake:'Wartet auf „Aphelios" …',listening:'Ich höre zu…',thinking:'Denkt nach…',speaking:'Spricht…'}[this.state.aiVoice]||'';}
+  aiMessageBubble(m,i){const h=React.createElement,C=this.C;
+    if(m.role==='system')return h('div',{key:i,style:{textAlign:'center',fontFamily:C.mono,fontSize:'11px',letterSpacing:'.5px',color:C.mutedSoft,margin:'6px 0'}},m.text);
+    if(m.role==='tool')return h('div',{key:i,style:{display:'flex',alignItems:'center',gap:'8px',fontFamily:C.mono,fontSize:'11px',letterSpacing:'.3px',color:C.success,margin:'4px 0',paddingLeft:'4px'}},this.icon('check',13,2),m.text);
+    const isUser=m.role==='user';
+    return h('div',{key:i,style:{display:'flex',flexDirection:'column',alignItems:isUser?'flex-end':'flex-start',margin:'10px 0'}},
+      h('div',{className:isUser?'':'ai-bubble-ai',style:{maxWidth:'88%',padding:isUser?'10px 14px':'2px 0',borderRadius:isUser?'14px 14px 3px 14px':0,background:isUser?'rgba(195,217,243,.12)':'transparent',border:isUser?'1px solid rgba(195,217,243,.25)':'none',color:C.bodyStrong,fontFamily:C.serif,fontSize:'15.5px',lineHeight:1.55}},
+        isUser?m.text:this.aiRenderMarkdown(m.text)),
+      !isUser&&m.text?h('div',{style:{display:'flex',gap:'10px',marginTop:'4px'}},
+        h('button',{onClick:()=>this.aiCopy(m.text),title:'Kopieren',style:{border:'none',background:'none',color:C.mutedSoft,cursor:'pointer',display:'flex',alignItems:'center',gap:'4px',fontFamily:C.mono,fontSize:'10px'}},this.icon('check',11,2),'Kopieren'),
+        i===this.state.aiConvo.length-1?h('button',{onClick:()=>this.aiRegenerate(),title:'Neu generieren',style:{border:'none',background:'none',color:C.mutedSoft,cursor:'pointer',display:'flex',alignItems:'center',gap:'4px',fontFamily:C.mono,fontSize:'10px'}},this.icon('reload',11,2),'Neu generieren'):null):null,
+      m.citations&&m.citations.length?h('div',{style:{fontFamily:C.mono,fontSize:'10px',color:C.mutedSoft,marginTop:'2px'}},'Quelle: '+m.citations.join(', ')):null);}
+  aiHistoryPanel(){const h=React.createElement,C=this.C;const list=this._loadAiHistory().filter(c=>!this.state.aiHistQuery||c.title.toLowerCase().includes(this.state.aiHistQuery.toLowerCase()));
+    return h('div',{style:{display:'flex',flexDirection:'column',gap:'2px',overflow:'auto',flex:1}},
+      h('input',{value:this.state.aiHistQuery,onChange:e=>this.setState({aiHistQuery:e.target.value}),placeholder:'Verlauf durchsuchen…',style:{margin:'0 14px 10px',padding:'8px 10px',background:'rgba(255,255,255,.05)',border:'1px solid '+C.lineStrong,color:'#fff',fontFamily:C.mono,fontSize:'12px',outline:'none'}}),
+      list.length===0?h('div',{style:{textAlign:'center',color:C.mutedSoft,fontFamily:C.mono,fontSize:'11px',padding:'20px'}},'Kein Verlauf.'):
+      list.map(c=>h('div',{key:c.id,style:{display:'flex',alignItems:'center',gap:'8px',padding:'10px 14px',borderTop:'1px solid rgba(255,255,255,.06)'}},
+        h('button',{onClick:()=>this.aiLoadConversation(c.id),style:{flex:1,textAlign:'left',border:'none',background:'none',color:'#fff',cursor:'pointer',fontFamily:C.serif,fontSize:'13.5px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},c.title),
+        h('button',{onClick:()=>this.aiExportConversation(c.id),title:'Export',style:{border:'none',background:'none',color:C.mutedSoft,cursor:'pointer',display:'flex'}},this.icon('arrow',13,2)),
+        h('button',{onClick:()=>this.aiDeleteConversation(c.id),title:'Löschen',style:{border:'none',background:'none',color:C.danger,cursor:'pointer',display:'flex'}},this.icon('trash',13,2)))));}
+  AI_SETUP_TEXT(){return ['Einmalige Einrichtung (dieselbe Supabase-Instanz wie beim Cloud-Sync):',
+    '',
+    '1. Supabase-CLI installieren, dann im Projektordner:',
+    '   supabase functions deploy aphelios-chat --project-ref <dein-projekt-ref>',
+    '   (Alternativ: im Supabase-Dashboard unter Edge Functions den Code aus',
+    '   supabase/functions/aphelios-chat/index.ts einfuegen und deployen.)',
+    '',
+    '2. Anthropic-API-Key als Secret setzen:',
+    '   supabase secrets set ANTHROPIC_API_KEY=sk-ant-...',
+    '   (Dashboard: Project Settings -> Edge Functions -> Secrets)',
+    '',
+    '3. Fertig - Aphelios erreicht die Funktion automatisch unter',
+    '   <deine-supabase-url>/functions/v1/aphelios-chat, mit derselben',
+    '   URL/Anon-Key, die du fuer den Cloud-Sync eingerichtet hast.'].join('\n');}
+  aiSettingsCard(){const h=React.createElement,C=this.C;const cfg=this.state.aiCfg;
+    const aiToggle=(label,hint,key,disabled)=>h('button',{onClick:()=>!disabled&&this.setAiCfg({[key]:!cfg[key]}),disabled,style:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 18px',border:'1px solid '+C.line,background:C.soft,cursor:disabled?'not-allowed':'pointer',opacity:disabled?.5:1}},
+      h('span',null,h('span',{style:{display:'block',fontFamily:C.serif,fontSize:'17px',color:C.body}},label),hint?h('span',{style:{display:'block',fontFamily:C.mono,fontSize:'11px',color:C.mutedSoft,marginTop:'3px'}},hint):null),
+      h('span',{style:{width:'46px',height:'26px',borderRadius:'9999px',border:'1px solid '+(cfg[key]?C.link:C.lineStrong),background:'transparent',position:'relative',flex:'none'}},h('span',{style:{position:'absolute',top:'3px',left:cfg[key]?'22px':'3px',width:'18px',height:'18px',borderRadius:'9999px',background:cfg[key]?C.link:C.muted,transition:'left .15s'}})));
+    return this.Card(h('div',null,
+      h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px',flexWrap:'wrap',gap:'10px'}},this.Eyebrow('Aphelios — KI-Assistent'),
+        h('span',{style:{fontFamily:C.mono,fontSize:'11px',letterSpacing:'1px',textTransform:'uppercase',color:this.cfg?(cfg.enabled?C.success:C.mutedSoft):C.warning}},!this.cfg?'Supabase fehlt':cfg.enabled?'Aktiv':'Deaktiviert')),
+      h('p',{style:{margin:'8px 0 18px',fontFamily:C.serif,fontSize:'17px',lineHeight:1.55,color:C.muted}},'Ein KI-Assistent, der Tickets und ToDos für dich erstellt, sucht und ändert - per Text oder Sprache. Läuft über deine eigene Supabase-Instanz (Anthropic Claude als Sprachmodell), niemals ohne deine Zustimmung übers Mikrofon.'),
+      !this.cfg?h('div',{style:{padding:'12px 16px',border:'1px solid '+C.lineStrong,background:C.soft,color:C.muted,fontFamily:C.serif,fontSize:'14px',marginBottom:'16px'}},'Bitte zuerst oben „Cloud-Sync einrichten" - Aphelios nutzt dieselbe Verbindung.'):null,
+      h('div',{style:{display:'grid',gap:'10px',marginBottom:'16px'}},
+        aiToggle('Aphelios aktivieren','Blendet den Assistenten in der Kopfzeile ein.','enabled',!this.cfg),
+        aiToggle('Sprachein-/ausgabe','Mikrofon nur nach deiner Zustimmung, Antworten werden zusätzlich vorgelesen.','voiceEnabled',!cfg.enabled||!this.aiSpeechSupported()),
+        aiToggle('Wake-Word „Aphelios"','Hört fortlaufend auf das Weckwort (nur Chrome/Edge, Mikro-Symbol bleibt sichtbar).','wakeWordEnabled',!cfg.enabled||!cfg.voiceEnabled)),
+      !this.aiSpeechSupported()?h('div',{style:{fontFamily:C.mono,fontSize:'11px',color:C.mutedSoft,marginBottom:'12px'}},'Sprachfunktionen werden von diesem Browser nicht unterstützt (nur Chrome/Edge).'):null,
+      h('div',{style:{display:'flex',gap:'12px',flexWrap:'wrap'}},this.Btn('Einrichtung anzeigen',()=>this.openModal('aiSetup'),'secondary',{sm:true}),
+        this.Btn('Verlauf löschen',()=>{if(confirm('Gesamten Aphelios-Verlauf löschen?')){this._saveAiHistory([]);this.aiNewConversation();this.toast('Verlauf gelöscht.','ok');}},'danger',{sm:true}))));}
+
+  renderAiChat(){const h=React.createElement,C=this.C;if(!this.state.aiOpen)return null;
+    const mobile=this.state.mobile;const vh=this.state.vvh||(typeof window!=='undefined'?window.innerHeight:800);
+    const panelStyle=mobile?{position:'fixed',inset:0,zIndex:95,background:'rgba(8,8,10,.86)',backdropFilter:'blur(18px)',WebkitBackdropFilter:'blur(18px)',display:'flex',flexDirection:'column',height:vh+'px'}
+      :{position:'fixed',right:'28px',bottom:'104px',width:'420px',height:'min(640px, '+(vh-140)+'px)',zIndex:95,background:'rgba(14,14,17,.82)',backdropFilter:'blur(22px)',WebkitBackdropFilter:'blur(22px)',border:'1px solid rgba(255,255,255,.12)',borderRadius:'20px',boxShadow:'0 24px 70px rgba(0,0,0,.55)',display:'flex',flexDirection:'column',overflow:'hidden',animation:'ai-panel-in .28s cubic-bezier(.2,.9,.25,1)'};
+    const notConfigured=!this.cfg;
+    const notEnabled=this.cfg&&!this.state.aiCfg.enabled;
+    const voiceTxt=this.aiVoiceStatusText();
+    return h('div',{style:panelStyle,onClick:e=>e.stopPropagation()},
+      h('div',{style:{display:'flex',alignItems:'center',gap:'10px',padding:'16px 16px 14px',borderBottom:'1px solid rgba(255,255,255,.08)'}},
+        h('span',{className:'ai-badge'+(this.state.aiVoice!=='idle'?' ai-badge-active':''),style:{flex:'none'}},h('span',{className:'ai-badge-dot'}),h('span',{className:'ai-badge-dot'}),h('span',{className:'ai-badge-dot'})),
+        h('div',{style:{flex:1,minWidth:0}},h('div',{style:{fontFamily:C.disp,fontSize:'19px',letterSpacing:'1px',color:'#fff'}},'Aphelios'),
+          voiceTxt?h('div',{style:{fontFamily:C.mono,fontSize:'10px',letterSpacing:'1px',color:this.accent}},voiceTxt):null),
+        h('button',{onClick:()=>this.setState(s=>({aiHistoryOpen:!s.aiHistoryOpen})),title:'Verlauf',style:{border:'none',background:'none',color:C.mutedSoft,cursor:'pointer',display:'flex',padding:'6px'}},this.icon('clock',17,1.6)),
+        h('button',{onClick:()=>this.aiNewConversation(),title:'Neue Unterhaltung',style:{border:'none',background:'none',color:C.mutedSoft,cursor:'pointer',display:'flex',padding:'6px'}},this.icon('plus',17,1.6)),
+        h('button',{onClick:()=>this.aiToggleChat(),title:'Schließen',style:{border:'none',background:'none',color:C.mutedSoft,cursor:'pointer',display:'flex',padding:'6px'}},this.icon('x',17,1.6))),
+      this.state.aiHistoryOpen?this.aiHistoryPanel():
+      notConfigured?h('div',{style:{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'14px',padding:'30px',textAlign:'center'}},
+        h('div',{style:{fontFamily:C.serif,fontSize:'16px',color:C.body,lineHeight:1.5}},'Aphelios braucht eine Verbindung zu deiner Supabase-Instanz (dieselbe wie beim Cloud-Sync), um mit der KI zu sprechen.'),
+        this.Btn('Zu den Einstellungen',()=>{this.aiToggleChat();this.go('settings');},'primary',{sm:true})):
+      notEnabled?h('div',{style:{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'14px',padding:'30px',textAlign:'center'}},
+        h('div',{style:{fontFamily:C.serif,fontSize:'16px',color:C.body,lineHeight:1.5}},'Aphelios ist noch deaktiviert.'),
+        this.Btn('Aphelios aktivieren',()=>this.setAiCfg({enabled:true}),'primary',{sm:true})):
+      h(React.Fragment,null,
+        h('div',{className:'hd-sc',style:{flex:1,overflow:'auto',padding:'8px 16px'}},
+          this.state.aiConvo.length===0?h('div',{style:{textAlign:'center',color:C.mutedSoft,fontFamily:C.serif,fontSize:'15px',padding:'40px 20px',lineHeight:1.6}},'Frag mich etwas — z. B. „Erstelle ein Ticket" oder „Suche offene Druckertickets".'):
+          this.state.aiConvo.map((m,i)=>this.aiMessageBubble(m,i)),
+          this.state.aiThinking?(this.state.aiStreamText?h('div',{style:{margin:'10px 0'}},this.aiRenderMarkdown(this.state.aiStreamText),h('span',{className:'ai-cursor'})):h('div',{className:'ai-dots',style:{margin:'10px 0'}},h('span'),h('span'),h('span'))):null,
+          this.state.aiPendingConfirm?h('div',{style:{margin:'10px 0',padding:'14px',border:'1px solid rgba(192,85,63,.5)',background:'rgba(192,85,63,.08)',borderRadius:'10px'}},
+            h('div',{style:{fontFamily:C.serif,fontSize:'15px',color:C.bodyStrong,marginBottom:'12px'}},this.aiToolConfirmLabel(this.state.aiPendingConfirm.name,this.state.aiPendingConfirm.input)),
+            h('div',{style:{display:'flex',gap:'10px'}},this.Btn('Ja, durchführen',()=>this.aiResolveConfirm(true),'danger',{sm:true}),this.Btn('Abbrechen',()=>this.aiResolveConfirm(false),'ghost',{sm:true}))):null,
+          this.state.aiError?h('div',{style:{color:C.danger,fontFamily:C.mono,fontSize:'11px',margin:'8px 0'}},this.state.aiError):null),
+        h('div',{style:{padding:'12px 14px 14px',borderTop:'1px solid rgba(255,255,255,.08)',display:'flex',gap:'8px',alignItems:'flex-end'}},
+          this.state.aiThinking?this.Btn('Stop',()=>this.aiStop(),'danger',{sm:true}):null,
+          h('textarea',{value:this.state.aiInput,onChange:e=>this.setState({aiInput:e.target.value}),
+            onKeyDown:e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(this.state.aiInput.trim()&&!this.state.aiThinking)this.aiSend(this.state.aiInput);}},
+            placeholder:'Nachricht an Aphelios…',rows:1,disabled:this.state.aiThinking,
+            style:{flex:1,resize:'none',minHeight:'40px',maxHeight:'120px',padding:'10px 12px',background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.14)',borderRadius:'10px',color:'#fff',fontFamily:C.serif,fontSize:'14.5px',outline:'none'}}),
+          this.aiSpeechSupported()?h('button',{onClick:()=>{if(this._aiCmdRecog)this.aiStopCommandCapture();else this.aiStartCommandCapture();},title:'Sprechen',className:this.state.aiVoice==='listening'?'ai-mic-active':'',style:{flex:'none',width:'40px',height:'40px',borderRadius:'9999px',border:'1px solid rgba(255,255,255,.18)',background:this.state.aiVoice==='listening'?'rgba(192,85,63,.25)':'transparent',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}},this.icon('user',16,1.6)):null,
+          h('button',{onClick:()=>{if(this.state.aiInput.trim()&&!this.state.aiThinking)this.aiSend(this.state.aiInput);},disabled:this.state.aiThinking||!this.state.aiInput.trim(),title:'Senden',style:{flex:'none',width:'40px',height:'40px',borderRadius:'9999px',border:'1px solid #fff',background:'#fff',color:'#000',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',opacity:(this.state.aiThinking||!this.state.aiInput.trim())?.4:1}},this.icon('arrow',16,1.8)))));}
 
   renderModal(){const m=this.state.modal;if(!m)return null;const h=React.createElement,C=this.C,mf=this.state.mf,db=this.state.db;
     const t=m.uid?db.tickets.find(x=>x.uid===m.uid):null;let title='',body=null,ok=()=>{},okLabel='Speichern',okVariant='primary';
@@ -612,6 +1015,8 @@ class Component extends DCLogic {
         ok=()=>{this.configureSync({url:mf.url,anonKey:mf.anonKey,code:mf.code});this.closeModal();};break;
       case 'sql':title='Supabase SQL-Setup';okLabel='Kopieren';body=h('div',null,h('p',{style:{margin:'0 0 14px',fontFamily:C.serif,fontSize:'16px',color:C.body}},'Einmalig im Supabase SQL-Editor ausführen:'),h('pre',{className:'hd-sc',style:{margin:0,padding:'16px',background:'#000',color:C.body,border:'1px solid '+C.lineStrong,fontFamily:C.mono,fontSize:'11.5px',lineHeight:1.6,overflow:'auto',maxHeight:'340px',whiteSpace:'pre'}},this.SUPABASE_SQL()));
         ok=()=>{navigator.clipboard&&navigator.clipboard.writeText(this.SUPABASE_SQL());this.toast('SQL kopiert.','ok');this.closeModal();};break;
+      case 'aiSetup':title='Aphelios einrichten';okLabel='Kopieren';body=h('div',null,h('pre',{className:'hd-sc',style:{margin:0,padding:'16px',background:'#000',color:C.body,border:'1px solid '+C.lineStrong,fontFamily:C.mono,fontSize:'11.5px',lineHeight:1.6,overflow:'auto',maxHeight:'380px',whiteSpace:'pre-wrap'}},this.AI_SETUP_TEXT()));
+        ok=()=>{navigator.clipboard&&navigator.clipboard.writeText(this.AI_SETUP_TEXT());this.toast('Anleitung kopiert.','ok');this.closeModal();};break;
       default:return null;}
     const wide=['sync','sql','serviceNew','kbNew','todoNew','todoEdit'].includes(m.kind);
     // Gegen die auf Mobilgeräten geöffnete Bildschirmtastatur: window.innerHeight/100vh schrumpfen dabei
@@ -882,6 +1287,7 @@ class Component extends DCLogic {
           h('p',{style:{margin:'8px 0 20px',fontFamily:C.serif,fontSize:'17px',lineHeight:1.55,color:C.muted}},sync.configured?'Deine Daten werden über einen verschlüsselten Sync-Code mit deiner Supabase-Instanz abgeglichen. Der Reload-Button unten rechts holt jederzeit die neuesten Cloud-Daten.':'Verbinde deine eigene Supabase-Instanz, um Daten geräteübergreifend zu synchronisieren.'),
           sync.error?h('div',{style:{padding:'12px 16px',border:'1px solid #5a4a24',background:'#1a1408',color:C.warning,fontFamily:C.mono,fontSize:'11px',letterSpacing:'.5px',marginBottom:'16px'}},sync.error):null,
           h('div',{style:{display:'flex',gap:'12px',flexWrap:'wrap'}},sync.configured?[this.Btn('Synchronisieren',()=>this.syncNow(),'primary',{sm:true,icon:'reload'}),this.Btn('Neu einrichten',()=>this.openModal('sync'),'secondary',{sm:true}),this.Btn('Trennen',()=>this.disconnectSync(),'danger',{sm:true})]:[this.Btn('Cloud-Sync einrichten',()=>this.openModal('sync'),'primary',{sm:true}),this.Btn('SQL-Setup',()=>this.openModal('sql'),'secondary',{sm:true})]))),
+        this.aiSettingsCard(),
         this.Card(h('div',null,this.Eyebrow('Automatik & SLA',{marginBottom:'20px'}),h('div',{style:{display:'grid',gridTemplateColumns:this.state.mobile?'1fr':'1fr 1fr 1fr',gap:'18px',marginBottom:'18px'}},numField('Reaktivierung Pause (Tage)','pauseReactivationDays'),numField('Auto-Schließen (Tage)','resolvedAutoCloseDays'),numField('Eskalation nach (Tage)','escalationDays')),h('div',{style:{display:'grid',gap:'10px'}},toggle('E-Mail-Benachrichtigungen','emailNotify'),toggle('Wiedereröffnen sperren','reopenLocked')),h('div',{style:{marginTop:'16px'}},this.Btn('Automatik ausführen',()=>this.runAutomationNow(),'secondary',{sm:true,icon:'reload'})))),
         h('div',{style:{display:'grid',gridTemplateColumns:this.state.mobile?'1fr':'repeat(3,1fr)',gap:'16px'}},listEditor('Personen','users'),listEditor('Rollen','roles'),listEditor('Kategorien','categories')),
         this.Card(h('div',null,this.Eyebrow('Benachrichtigungen',{marginBottom:'12px'}),h('p',{style:{margin:'0 0 16px',fontFamily:C.serif,fontSize:'17px',lineHeight:1.55,color:C.muted}},this.notifState()==='granted'?'Aktiv – auslaufende Tickets erscheinen als Systembenachrichtigung, auch außerhalb der App.':'Erlaube Benachrichtigungen, um Hinweise zu auslaufenden Tickets auf dem Gerät zu erhalten.'),h('div',{style:{display:'flex',gap:'12px',flexWrap:'wrap',alignItems:'center'}},this.notifState()==='granted'?this.Btn('Test-Hinweis',()=>this.notifyExpiring(true),'secondary',{sm:true,icon:'reload'}):this.Btn('Benachrichtigungen aktivieren',()=>this.requestNotif(),'primary',{sm:true}),h('span',{style:{fontFamily:C.mono,fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:C.mutedSoft}},'Status: '+({granted:'Aktiv',denied:'Abgelehnt',default:'Nicht gesetzt',unsupported:'Nicht unterstützt'}[this.notifState()]||this.notifState()))))),
