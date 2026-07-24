@@ -684,8 +684,17 @@ class Component extends DCLogic {
     try{rec.start();}catch(e){this.toast('Wake-Word konnte nicht gestartet werden.','err');}}
   aiStopWakeListening(){this._aiWakeShouldRun=false;if(this._aiWakeRecog){try{this._aiWakeRecog.stop();}catch(e){}this._aiWakeRecog=null;}
     this.setState({aiWakeOn:false});if(this.state.aiVoice==='wake')this.setState({aiVoice:'idle'});}
-  aiWakeTriggered(){this.aiStopWakeListening();this.setState({aiOpen:true,aiVoice:'listening'});this.aiLoadMarkdownLibs();this.aiStartCommandCapture();}
+  aiWakeTriggered(){this.aiStopWakeListening();this.setState({aiOpen:true,aiVoice:'listening'});this.aiLoadMarkdownLibs();
+    // Kurze Verzögerung vor dem Start der Befehlsaufnahme: manche Browser (v. a. Edge) geben das
+    // Mikrofon der gerade gestoppten Wake-Word-Erkennung nicht sofort frei - ein sofortiger
+    // start() einer zweiten Instanz bricht dann selbst sofort wieder ab ("Sprachmodus springt
+    // nach 1ms wieder raus"), da nur eine aktive Aufnahme gleichzeitig möglich ist.
+    setTimeout(()=>this.aiStartCommandCapture(),250);}
   aiStartCommandCapture(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;
+    // Nur eine aktive Spracherkennung gleichzeitig möglich - falls der Wake-Word-Listener noch
+    // läuft (z. B. manueller Mikrofon-Klick, während Wake-Word im Hintergrund lauscht), diesen erst
+    // stoppen und die neue Aufnahme verzögert starten, statt sofort mit zwei Instanzen zu kollidieren.
+    if(this._aiWakeRecog){this.aiStopWakeListening();setTimeout(()=>this.aiStartCommandCapture(),250);return;}
     const rec=new SR();rec.continuous=false;rec.interimResults=true;rec.lang='de-DE';let finalText='';let errMsg=null;
     rec.onresult=e=>{let interim='',fin='';for(let i=0;i<e.results.length;i++){if(e.results[i].isFinal)fin+=e.results[i][0].transcript;else interim+=e.results[i][0].transcript;}
       this.setState({aiInput:(fin+interim).trim()});if(fin)finalText=fin;};
@@ -695,11 +704,14 @@ class Component extends DCLogic {
       else if(err==='audio-capture')errMsg='Kein Mikrofon gefunden.';
       else if(err&&err!=='no-speech'&&err!=='aborted')errMsg='Sprachaufnahme-Fehler ('+err+').';};
     rec.onend=async()=>{this.setState({aiVoice:'thinking'});const text=(finalText||this.state.aiInput||'').trim();this._aiCmdRecog=null;
-      if(errMsg){this.aiPushDisplay({role:'system',text:'Fehler: '+errMsg});this.setState({aiInput:'',aiVoice:this.state.aiCfg.wakeWordEnabled?'wake':'idle'});if(this.state.aiCfg.wakeWordEnabled)this.aiStartWakeListening();return;}
-      if(!text){this.setState({aiVoice:this.state.aiCfg.wakeWordEnabled?'wake':'idle'});if(this.state.aiCfg.wakeWordEnabled)this.aiStartWakeListening();return;}
+      // setTimeout vor aiStartWakeListening(): dieselbe Verzögerung wie beim umgekehrten Übergang -
+      // sonst startet der Wake-Listener, bevor der Browser das Mikrofon der gerade beendeten
+      // Befehlsaufnahme freigegeben hat, und bricht selbst sofort wieder ab.
+      if(errMsg){this.aiPushDisplay({role:'system',text:'Fehler: '+errMsg});this.setState({aiInput:'',aiVoice:this.state.aiCfg.wakeWordEnabled?'wake':'idle'});if(this.state.aiCfg.wakeWordEnabled)setTimeout(()=>this.aiStartWakeListening(),250);return;}
+      if(!text){this.setState({aiVoice:this.state.aiCfg.wakeWordEnabled?'wake':'idle'});if(this.state.aiCfg.wakeWordEnabled)setTimeout(()=>this.aiStartWakeListening(),250);return;}
       if(/^(danke\s*klaus|stop|beenden|gespräch\s*beenden|schlafmodus)[.!]?$/i.test(text.trim())){
         this.aiPushDisplay({role:'system',text:'Bis bald! 👋'});this.aiSpeak('Bis bald!');this.setState({aiInput:'',aiVoice:this.state.aiCfg.wakeWordEnabled?'wake':'idle'});
-        if(this.state.aiCfg.wakeWordEnabled)this.aiStartWakeListening();return;}
+        if(this.state.aiCfg.wakeWordEnabled)setTimeout(()=>this.aiStartWakeListening(),250);return;}
       this._aiVoiceTurn=true;await this.aiSend(text);
       if(this.state.aiCfg.voiceEnabled&&!this.state.aiPendingConfirm)this.aiStartCommandCapture();};
     this._aiCmdRecog=rec;this.setState({aiVoice:'listening'});try{rec.start();}catch(e){}}
