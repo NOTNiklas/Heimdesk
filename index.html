@@ -617,7 +617,7 @@ class Component extends DCLogic {
         const toolCalls=blocks.filter(b=>b.type==='tool_use');
         if(textPart)this.aiPushDisplay({role:'assistant',text:textPart,citations:retrieved.map(r=>r.title)});
         this.setState({aiStreamText:''});
-        if(!toolCalls.length){this.setState({aiThinking:false});if(this._aiVoiceTurn)this.aiSpeak(textPart);this.aiPersistConvo();return;}
+        if(!toolCalls.length){this.setState({aiThinking:false});if(this._aiVoiceTurn)await this.aiSpeak(textPart);this.aiPersistConvo();return;}
         const destructive=toolCalls.find(tc=>this.aiIsDestructive(tc.name));
         if(destructive){this.setState({aiThinking:false,aiPendingConfirm:{toolUseId:destructive.id,name:destructive.name,input:destructive.input,otherCalls:toolCalls.filter(tc=>tc!==destructive)}});return;}
         const results=toolCalls.map(tc=>{const r=this.aiExecuteTool(tc.name,tc.input);return{type:'tool_result',tool_use_id:tc.id,content:JSON.stringify(r)};});
@@ -655,15 +655,25 @@ class Component extends DCLogic {
     if(!pool.length)return null;
     // Cloud-/Neural-Stimmen (Google, Microsoft "Online"/"Natural", Apple "Enhanced"/"Premium") klingen
     // deutlich natürlicher als die generischen lokalen System-Stimmen (oft der Grund für "computermäßig").
-    const score=v=>{let s=0;if(/google/i.test(v.name))s+=4;if(/online|natural|neural/i.test(v.name))s+=4;if(/enhanced|premium/i.test(v.name))s+=3;if(!v.localService)s+=2;if(/female|f\b/i.test(v.name))s+=1;return s;};
+    // Zusätzlich eine männliche Stimme bevorzugen (Web-Speech-API liefert kein Geschlecht als Feld,
+    // daher über bekannte Vornamen gängiger Anbieter-Stimmen geschätzt).
+    const maleHints=/conrad|stefan|markus|florian|daniel|michael|ralf|jonas|male\b/i;
+    const femaleHints=/katja|hedda|anna|petra|vicki|marlene|female\b/i;
+    const score=v=>{let s=0;if(/google/i.test(v.name))s+=4;if(/online|natural|neural/i.test(v.name))s+=4;if(/enhanced|premium/i.test(v.name))s+=3;if(!v.localService)s+=2;if(maleHints.test(v.name))s+=5;if(femaleHints.test(v.name))s-=5;return s;};
     return pool.slice().sort((a,b)=>score(b)-score(a))[0];}
-  aiSpeak(text){if(!this.state.aiCfg.voiceEnabled||!text)return;if(typeof speechSynthesis==='undefined')return;
-    try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text.replace(/[*_#`]/g,''));u.lang='de-DE';u.rate=.97;u.pitch=1;
-      const v=this.aiPickVoice();if(v){u.voice=v;u.lang=v.lang;}
-      u.onstart=()=>this.setState({aiVoice:'speaking'});
-      u.onend=()=>this.setState({aiVoice:this.state.aiWakeOn?'wake':'idle'});
-      u.onerror=()=>this.setState({aiVoice:this.state.aiWakeOn?'wake':'idle'});
-      speechSynthesis.speak(u);}catch(e){}}
+  aiSpeak(text){
+    // Gibt ein Promise zurück, das erst auflöst, wenn die Sprachausgabe fertig ist (oder gar nicht
+    // erst startet) - Aufrufer warten damit ab, bevor sie das Mikrofon wieder aktivieren. Sonst nimmt
+    // die noch laufende Erkennung die eigene KI-Antwort als vermeintlichen Nutzer-Input auf.
+    return new Promise(resolve=>{
+      if(!this.state.aiCfg.voiceEnabled||!text||typeof speechSynthesis==='undefined'){resolve();return;}
+      try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text.replace(/[*_#`]/g,''));u.lang='de-DE';u.rate=.97;u.pitch=1;
+        const v=this.aiPickVoice();if(v){u.voice=v;u.lang=v.lang;}
+        u.onstart=()=>this.setState({aiVoice:'speaking'});
+        u.onend=()=>{this.setState({aiVoice:this.state.aiWakeOn?'wake':'idle'});resolve();};
+        u.onerror=()=>{this.setState({aiVoice:this.state.aiWakeOn?'wake':'idle'});resolve();};
+        speechSynthesis.speak(u);}catch(e){resolve();}
+    });}
   aiSpeechSupported(){return !!(window.SpeechRecognition||window.webkitSpeechRecognition);}
   aiToggleChat(){this.setState(s=>({aiOpen:!s.aiOpen}));if(!this.state.aiOpen)this.aiLoadMarkdownLibs();}
   aiStartWakeListening(){if(this._aiWakeRecog)return;const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){this.toast('Spracherkennung wird von diesem Browser nicht unterstützt (nur Chrome/Edge).','err');return;}
@@ -710,10 +720,12 @@ class Component extends DCLogic {
       if(errMsg){this.aiPushDisplay({role:'system',text:'Fehler: '+errMsg});this.setState({aiInput:'',aiVoice:this.state.aiCfg.wakeWordEnabled?'wake':'idle'});if(this.state.aiCfg.wakeWordEnabled)setTimeout(()=>this.aiStartWakeListening(),250);return;}
       if(!text){this.setState({aiVoice:this.state.aiCfg.wakeWordEnabled?'wake':'idle'});if(this.state.aiCfg.wakeWordEnabled)setTimeout(()=>this.aiStartWakeListening(),250);return;}
       if(/^(danke\s*klaus|stop|beenden|gespräch\s*beenden|schlafmodus)[.!]?$/i.test(text.trim())){
-        this.aiPushDisplay({role:'system',text:'Bis bald! 👋'});this.aiSpeak('Bis bald!');this.setState({aiInput:'',aiVoice:this.state.aiCfg.wakeWordEnabled?'wake':'idle'});
+        this.aiPushDisplay({role:'system',text:'Bis bald! 👋'});await this.aiSpeak('Bis bald!');this.setState({aiInput:'',aiVoice:this.state.aiCfg.wakeWordEnabled?'wake':'idle'});
         if(this.state.aiCfg.wakeWordEnabled)setTimeout(()=>this.aiStartWakeListening(),250);return;}
       this._aiVoiceTurn=true;await this.aiSend(text);
-      if(this.state.aiCfg.voiceEnabled&&!this.state.aiPendingConfirm)this.aiStartCommandCapture();};
+      // Kleiner Sicherheitspuffer nach Ende der Sprachausgabe (Raumhall/Lautsprecher-Nachklang),
+      // bevor das Mikrofon für die nächste Runde wieder aktiv wird.
+      if(this.state.aiCfg.voiceEnabled&&!this.state.aiPendingConfirm)setTimeout(()=>this.aiStartCommandCapture(),300);};
     this._aiCmdRecog=rec;this.setState({aiVoice:'listening'});try{rec.start();}catch(e){}}
   aiStopCommandCapture(){if(this._aiCmdRecog){try{this._aiCmdRecog.stop();}catch(e){}this._aiCmdRecog=null;}}
 
