@@ -266,7 +266,7 @@ class Component extends DCLogic {
     setTimeout(()=>this.checkDueReminders(),3800);
     this._reminders=setInterval(()=>this.checkDueReminders(),60000);
     this.setState(s=>{const d=structuredClone(s.db);if(this.runAutomation(d)){this.persistDB(d);return {db:d};}return null;});
-    this.onKey=(e)=>{if(e.key==='Escape'){if(this.state.modal)this.closeModal();else if(this.state.aiOpen)this.aiToggleChat();else if(this.state.navOpen)this.setState({navOpen:false});}
+    this.onKey=(e)=>{if(e.key==='Escape'){if(this.state.modal)this.closeModal();else if(this.state.aiOpen&&this.state.aiVoice!=='idle')this.aiCancelVoice();else if(this.state.aiOpen)this.aiToggleChat();else if(this.state.navOpen)this.setState({navOpen:false});}
       if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();this.setState({searchOpen:true});const el=document.querySelector('input[placeholder^="SUCHEN"],input[placeholder^="Tickets"]');if(el)el.focus();}
       if((e.metaKey||e.ctrlKey)&&e.code==='Space'){e.preventDefault();if(!this.state.aiOpen)this.aiToggleChat();else this.aiToggleChat();}
       if((e.metaKey||e.ctrlKey)&&e.shiftKey&&(e.key==='A'||e.key==='a')){e.preventDefault();if(!this.aiSpeechSupported()){this.toast('Spracherkennung wird von diesem Browser nicht unterstützt.','err');return;}if(!this.state.aiOpen)this.setState({aiOpen:true});this.aiLoadMarkdownLibs();if(this._aiCmdRecog)this.aiStopCommandCapture();else this.aiStartCommandCapture();}};
@@ -675,7 +675,19 @@ class Component extends DCLogic {
         speechSynthesis.speak(u);}catch(e){resolve();}
     });}
   aiSpeechSupported(){return !!(window.SpeechRecognition||window.webkitSpeechRecognition);}
-  aiToggleChat(){this.setState(s=>({aiOpen:!s.aiOpen}));if(!this.state.aiOpen)this.aiLoadMarkdownLibs();}
+  aiToggleChat(){const closing=this.state.aiOpen;this.setState(s=>({aiOpen:!s.aiOpen}));
+    if(!closing){this.aiLoadMarkdownLibs();return;}
+    // Panel schließen: aktive Befehlsaufnahme und laufende Sprachausgabe stoppen, statt im
+    // Hintergrund unsichtbar weiterzureden/-zuhören - Wake-Word-Hintergrundlauschen aber
+    // unangetastet lassen (soll ja gerade weiterlaufen, um den Chat später wieder zu öffnen).
+    this._aiVoiceCancel=true;this.aiStopCommandCapture();
+    if(typeof speechSynthesis!=='undefined')try{speechSynthesis.cancel();}catch(e){}
+    this._aiVoiceTurn=false;
+    // Wake-Word war beim Übergang in die Befehlsaufnahme bereits gestoppt worden (aiWakeOn also
+    // schon false) - hier bei Bedarf explizit neu starten, statt nur den Anzeigezustand zu setzen,
+    // sonst lauscht nach dem Schließen gar nichts mehr auf "Klaus".
+    if(this.state.aiCfg.wakeWordEnabled){this.setState({aiVoice:'wake'});setTimeout(()=>this.aiStartWakeListening(),300);}
+    else this.setState({aiVoice:'idle'});}
   aiStartWakeListening(){if(this._aiWakeRecog)return;const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){this.toast('Spracherkennung wird von diesem Browser nicht unterstützt (nur Chrome/Edge).','err');return;}
     const rec=new SR();rec.continuous=true;rec.interimResults=true;rec.lang='de-DE';
     rec.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;if(/klaus/i.test(t))this.aiWakeTriggered();};
@@ -705,6 +717,7 @@ class Component extends DCLogic {
     // läuft (z. B. manueller Mikrofon-Klick, während Wake-Word im Hintergrund lauscht), diesen erst
     // stoppen und die neue Aufnahme verzögert starten, statt sofort mit zwei Instanzen zu kollidieren.
     if(this._aiWakeRecog){this.aiStopWakeListening();setTimeout(()=>this.aiStartCommandCapture(),250);return;}
+    this._aiVoiceCancel=false;
     const rec=new SR();rec.continuous=false;rec.interimResults=true;rec.lang='de-DE';let finalText='';let errMsg=null;
     rec.onresult=e=>{let interim='',fin='';for(let i=0;i<e.results.length;i++){if(e.results[i].isFinal)fin+=e.results[i][0].transcript;else interim+=e.results[i][0].transcript;}
       this.setState({aiInput:(fin+interim).trim()});if(fin)finalText=fin;};
@@ -713,7 +726,10 @@ class Component extends DCLogic {
       else if(err==='network')errMsg='Spracherkennung braucht eine Internetverbindung.';
       else if(err==='audio-capture')errMsg='Kein Mikrofon gefunden.';
       else if(err&&err!=='no-speech'&&err!=='aborted')errMsg='Sprachaufnahme-Fehler ('+err+').';};
-    rec.onend=async()=>{this.setState({aiVoice:'thinking'});const text=(finalText||this.state.aiInput||'').trim();this._aiCmdRecog=null;
+    rec.onend=async()=>{this._aiCmdRecog=null;
+      // Über den Abbrechen-Button/Escape gestoppt - nichts mehr verarbeiten oder neu starten.
+      if(this._aiVoiceCancel){this._aiVoiceCancel=false;return;}
+      this.setState({aiVoice:'thinking'});const text=(finalText||this.state.aiInput||'').trim();
       // setTimeout vor aiStartWakeListening(): dieselbe Verzögerung wie beim umgekehrten Übergang -
       // sonst startet der Wake-Listener, bevor der Browser das Mikrofon der gerade beendeten
       // Befehlsaufnahme freigegeben hat, und bricht selbst sofort wieder ab.
@@ -728,6 +744,12 @@ class Component extends DCLogic {
       if(this.state.aiCfg.voiceEnabled&&!this.state.aiPendingConfirm)setTimeout(()=>this.aiStartCommandCapture(),300);};
     this._aiCmdRecog=rec;this.setState({aiVoice:'listening'});try{rec.start();}catch(e){}}
   aiStopCommandCapture(){if(this._aiCmdRecog){try{this._aiCmdRecog.stop();}catch(e){}this._aiCmdRecog=null;}}
+  // Sprachmodus komplett und sofort abbrechen (Button/Escape): stoppt Wake-Word und laufende
+  // Befehlsaufnahme, unterdrückt deren onend-Verarbeitung (kein Senden/Neustarten mehr) und
+  // bricht eine gerade laufende Sprachausgabe ab.
+  aiCancelVoice(){this._aiVoiceCancel=true;this.aiStopWakeListening();this.aiStopCommandCapture();
+    if(typeof speechSynthesis!=='undefined')try{speechSynthesis.cancel();}catch(e){}
+    this._aiVoiceTurn=false;this.setState({aiVoice:'idle',aiWakeOn:false,aiInput:''});}
 
   /* ---------- RELOAD (cloud pull → else local refresh) ---------- */
   async onReload(){if(this.state.reloading)return;
@@ -977,7 +999,9 @@ class Component extends DCLogic {
       h('div',{style:{display:'flex',alignItems:'center',gap:'10px',padding:'16px 16px 14px',borderBottom:'1px solid rgba(255,255,255,.08)'}},
         h('span',{className:'ai-badge'+(this.state.aiVoice!=='idle'?' ai-badge-active':''),style:{flex:'none'}},h('span',{className:'ai-badge-dot'}),h('span',{className:'ai-badge-dot'}),h('span',{className:'ai-badge-dot'})),
         h('div',{style:{flex:1,minWidth:0}},h('div',{style:{fontFamily:C.disp,fontSize:'19px',letterSpacing:'1px',color:'#fff'}},'Klaus'),
-          voiceTxt?h('div',{style:{fontFamily:C.mono,fontSize:'10px',letterSpacing:'1px',color:this.accent}},voiceTxt):null),
+          voiceTxt?h('div',{style:{display:'flex',alignItems:'center',gap:'8px'}},
+            h('span',{style:{fontFamily:C.mono,fontSize:'10px',letterSpacing:'1px',color:this.accent}},voiceTxt),
+            h('button',{onClick:()=>this.aiCancelVoice(),style:{border:'none',background:'none',color:C.mutedSoft,cursor:'pointer',fontFamily:C.mono,fontSize:'10px',letterSpacing:'1px',textDecoration:'underline',padding:0}},'Abbrechen')):null),
         h('button',{onClick:()=>this.setState(s=>({aiHistoryOpen:!s.aiHistoryOpen})),title:'Verlauf',style:{border:'none',background:'none',color:C.mutedSoft,cursor:'pointer',display:'flex',padding:'6px'}},this.icon('clock',17,1.6)),
         h('button',{onClick:()=>this.aiNewConversation(),title:'Neue Unterhaltung',style:{border:'none',background:'none',color:C.mutedSoft,cursor:'pointer',display:'flex',padding:'6px'}},this.icon('plus',17,1.6)),
         h('button',{onClick:()=>this.aiToggleChat(),title:'Schließen',style:{border:'none',background:'none',color:C.mutedSoft,cursor:'pointer',display:'flex',padding:'6px'}},this.icon('x',17,1.6))),
