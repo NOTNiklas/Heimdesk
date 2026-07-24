@@ -82,7 +82,7 @@
   .lx-main{max-width:1200px;margin:0 auto;padding:40px 40px 140px}
   .lx-main h1{overflow-wrap:break-word;word-break:break-word}
 
-  /* ---------- Aphelios ---------- */
+  /* ---------- Klaus ---------- */
   @keyframes ai-pulse-dot{0%,100%{transform:scale(1);opacity:.5}50%{transform:scale(1.5);opacity:1}}
   @keyframes ai-panel-in{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
   @keyframes ai-blink{0%,50%{opacity:1}51%,100%{opacity:0}}
@@ -140,7 +140,7 @@
         <div style="display:flex;align-items:baseline;gap:3px;font-family:'Saira Condensed',sans-serif;font-size:20px;letter-spacing:4px;text-transform:uppercase;color:#fff">HEIM<span style="color:#666">DESK</span></div>
       </div>
       <div style="flex:1"></div>
-      <button onClick="{{ onAiToggle }}" aria-label="Aphelios öffnen" class="ai-trigger" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border:1px solid #3a3a3a;border-radius:9999px;background:transparent;color:#fff">{{ aiIcon }}</button>
+      <button onClick="{{ onAiToggle }}" aria-label="Klaus öffnen" class="ai-trigger" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border:1px solid #3a3a3a;border-radius:9999px;background:transparent;color:#fff">{{ aiIcon }}</button>
       <button onClick="{{ toggleSearch }}" aria-label="Suche" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border:1px solid #3a3a3a;border-radius:9999px;background:transparent;color:#fff">{{ iconSearch }}</button>
     </header>
     <sc-if value="{{ searchOpen }}" hint-placeholder-val="{{ false }}">
@@ -198,8 +198,8 @@
         <span style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9999px;border:1px solid #3a3a3a;font-family:'JetBrains Mono',monospace;font-size:10px;color:#fff">{{ userInitials }}</span>
         <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#999;padding-right:8px">{{ roleLabel }}</span>
       </button>
-      <button onClick="{{ onAiToggle }}" class="ai-trigger" title="Aphelios (Strg+Leertaste)" style="display:flex;align-items:center;gap:9px;height:42px;padding:0 16px 0 12px;border:1px solid #3a3a3a;border-radius:9999px;background:transparent;color:#fff">
-        {{ aiIcon }}<span style="font-family:'Saira Condensed',sans-serif;font-size:14px;letter-spacing:2px;text-transform:uppercase">Aphelios</span>
+      <button onClick="{{ onAiToggle }}" class="ai-trigger" title="Klaus (Strg+Leertaste)" style="display:flex;align-items:center;gap:9px;height:42px;padding:0 16px 0 12px;border:1px solid #3a3a3a;border-radius:9999px;background:transparent;color:#fff">
+        {{ aiIcon }}<span style="font-family:'Saira Condensed',sans-serif;font-size:14px;letter-spacing:2px;text-transform:uppercase">Klaus</span>
       </button>
     </header>
   </sc-if>
@@ -466,7 +466,7 @@ class Component extends DCLogic {
     this._saveAiHistory(list);if(!this.state.aiConvoId)this.setState({aiConvoId:id});}
   aiLoadConversation(id){const list=this._loadAiHistory();const c=list.find(x=>x.id===id);if(!c)return;this.setState({aiConvo:c.messages,aiConvoId:c.id,aiHistoryOpen:false,aiStreamText:'',aiPendingConfirm:null});}
   aiDeleteConversation(id){this._saveAiHistory(this._loadAiHistory().filter(x=>x.id!==id));if(this.state.aiConvoId===id)this.aiNewConversation();this.forceUpdate();}
-  aiExportConversation(id){const c=this._loadAiHistory().find(x=>x.id===id);if(!c)return;const blob=new Blob([JSON.stringify(c,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='aphelios-'+c.id+'.json';a.click();}
+  aiExportConversation(id){const c=this._loadAiHistory().find(x=>x.id===id);if(!c)return;const blob=new Blob([JSON.stringify(c,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='klaus-'+c.id+'.json';a.click();}
 
   /* ---------- AI.context ---------- */
   aiGatherContext(){const ui=this.state.ui,db=this.state.db;
@@ -569,7 +569,7 @@ class Component extends DCLogic {
 
   /* ---------- AI.chat: System-Prompt, Streaming-Request, Tool-Calling-Schleife ---------- */
   aiSystemPrompt(retrieved){const ctx=this.aiGatherContext();
-    let s='Du bist Aphelios, der freundliche, professionelle KI-Assistent von HeimDesk (Ticket- und ToDo-Verwaltung). '
+    let s='Du bist Klaus, der freundliche, professionelle KI-Assistent von HeimDesk (Ticket- und ToDo-Verwaltung). '
       +'Antworte auf Deutsch, kurz und klar; erkläre nur ausführlich, wenn ausdrücklich danach gefragt wird. '
       +'Nutze die bereitgestellten Werkzeuge, um echte Aktionen auszuführen, statt sie nur zu beschreiben. '
       +'Wenn eine wichtige Angabe fehlt (z. B. Betreff oder Priorität beim Anlegen), frage kurz nach statt zu raten. '
@@ -600,7 +600,7 @@ class Component extends DCLogic {
   aiPushDisplay(msg){this.setState(s=>({aiConvo:[...s.aiConvo,{ts:Date.now(),...msg}]}));}
   aiSendTyped(userText){this._aiVoiceTurn=false;this.aiSend(userText);}
   async aiSend(userText){if(!userText||!userText.trim())return;
-    if(!this.cfg){this.aiPushDisplay({role:'system',text:'Bitte zuerst Cloud-Sync in den Einstellungen einrichten (Aphelios nutzt dieselbe Supabase-Verbindung).'});return;}
+    if(!this.cfg){this.aiPushDisplay({role:'system',text:'Bitte zuerst Cloud-Sync in den Einstellungen einrichten (Klaus nutzt dieselbe Supabase-Verbindung).'});return;}
     userText=userText.trim();this._aiRaw=this._aiRaw||[];
     this._aiRaw.push({role:'user',content:userText});
     this.aiPushDisplay({role:'user',text:userText});
@@ -668,7 +668,7 @@ class Component extends DCLogic {
   aiToggleChat(){this.setState(s=>({aiOpen:!s.aiOpen}));if(!this.state.aiOpen)this.aiLoadMarkdownLibs();}
   aiStartWakeListening(){if(this._aiWakeRecog)return;const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){this.toast('Spracherkennung wird von diesem Browser nicht unterstützt (nur Chrome/Edge).','err');return;}
     const rec=new SR();rec.continuous=true;rec.interimResults=true;rec.lang='de-DE';
-    rec.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;if(/aphelios/i.test(t))this.aiWakeTriggered();};
+    rec.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;if(/klaus/i.test(t))this.aiWakeTriggered();};
     // Fehler nicht mehr stumm schlucken: ohne dieses Feedback wirkt ein verweigerter
     // Mikrofonzugriff oder eine fehlende Internetverbindung (Spracherkennung läuft über einen
     // Cloud-Dienst) wie "Wake-Word tut einfach gar nichts", ohne erkennbaren Grund.
@@ -697,7 +697,7 @@ class Component extends DCLogic {
     rec.onend=async()=>{this.setState({aiVoice:'thinking'});const text=(finalText||this.state.aiInput||'').trim();this._aiCmdRecog=null;
       if(errMsg){this.aiPushDisplay({role:'system',text:'Fehler: '+errMsg});this.setState({aiInput:'',aiVoice:this.state.aiCfg.wakeWordEnabled?'wake':'idle'});if(this.state.aiCfg.wakeWordEnabled)this.aiStartWakeListening();return;}
       if(!text){this.setState({aiVoice:this.state.aiCfg.wakeWordEnabled?'wake':'idle'});if(this.state.aiCfg.wakeWordEnabled)this.aiStartWakeListening();return;}
-      if(/^(danke\s*aphelios|stop|beenden|gespräch\s*beenden|schlafmodus)[.!]?$/i.test(text.trim())){
+      if(/^(danke\s*klaus|stop|beenden|gespräch\s*beenden|schlafmodus)[.!]?$/i.test(text.trim())){
         this.aiPushDisplay({role:'system',text:'Bis bald! 👋'});this.aiSpeak('Bis bald!');this.setState({aiInput:'',aiVoice:this.state.aiCfg.wakeWordEnabled?'wake':'idle'});
         if(this.state.aiCfg.wakeWordEnabled)this.aiStartWakeListening();return;}
       this._aiVoiceTurn=true;await this.aiSend(text);
@@ -891,7 +891,7 @@ class Component extends DCLogic {
   aiCopy(text){try{navigator.clipboard&&navigator.clipboard.writeText(text);this.toast('In Zwischenablage kopiert.','ok');}catch(e){}}
 
   /* ---------- AI.render: Chat-Panel (Glasmorphism) ---------- */
-  aiVoiceStatusText(){return{idle:'',wake:'Wartet auf „Aphelios" …',listening:'Ich höre zu…',thinking:'Denkt nach…',speaking:'Spricht…'}[this.state.aiVoice]||'';}
+  aiVoiceStatusText(){return{idle:'',wake:'Wartet auf „Klaus" …',listening:'Ich höre zu…',thinking:'Denkt nach…',speaking:'Spricht…'}[this.state.aiVoice]||'';}
   aiMessageBubble(m,i){const h=React.createElement,C=this.C;
     if(m.role==='system')return h('div',{key:i,style:{textAlign:'center',fontFamily:C.mono,fontSize:'11px',letterSpacing:'.5px',color:C.mutedSoft,margin:'6px 0'}},m.text);
     if(m.role==='tool')return h('div',{key:i,style:{display:'flex',alignItems:'center',gap:'8px',fontFamily:C.mono,fontSize:'11px',letterSpacing:'.3px',color:C.success,margin:'4px 0',paddingLeft:'4px'}},this.icon('check',13,2),m.text);
@@ -922,7 +922,7 @@ class Component extends DCLogic {
     '   supabase secrets set ANTHROPIC_API_KEY=sk-ant-...',
     '   (Dashboard: Project Settings -> Edge Functions -> Secrets)',
     '',
-    '3. Fertig - Aphelios erreicht die Funktion automatisch unter',
+    '3. Fertig - Klaus erreicht die Funktion automatisch unter',
     '   <deine-supabase-url>/functions/v1/aphelios-chat, mit derselben',
     '   URL/Anon-Key, die du fuer den Cloud-Sync eingerichtet hast.'].join('\n');}
   aiSettingsCard(){const h=React.createElement,C=this.C;const cfg=this.state.aiCfg;
@@ -930,17 +930,17 @@ class Component extends DCLogic {
       h('span',null,h('span',{style:{display:'block',fontFamily:C.serif,fontSize:'17px',color:C.body}},label),hint?h('span',{style:{display:'block',fontFamily:C.mono,fontSize:'11px',color:C.mutedSoft,marginTop:'3px'}},hint):null),
       h('span',{style:{width:'46px',height:'26px',borderRadius:'9999px',border:'1px solid '+(cfg[key]?C.link:C.lineStrong),background:'transparent',position:'relative',flex:'none'}},h('span',{style:{position:'absolute',top:'3px',left:cfg[key]?'22px':'3px',width:'18px',height:'18px',borderRadius:'9999px',background:cfg[key]?C.link:C.muted,transition:'left .15s'}})));
     return this.Card(h('div',null,
-      h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px',flexWrap:'wrap',gap:'10px'}},this.Eyebrow('Aphelios — KI-Assistent'),
+      h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px',flexWrap:'wrap',gap:'10px'}},this.Eyebrow('Klaus — KI-Assistent'),
         h('span',{style:{fontFamily:C.mono,fontSize:'11px',letterSpacing:'1px',textTransform:'uppercase',color:this.cfg?(cfg.enabled?C.success:C.mutedSoft):C.warning}},!this.cfg?'Supabase fehlt':cfg.enabled?'Aktiv':'Deaktiviert')),
       h('p',{style:{margin:'8px 0 18px',fontFamily:C.serif,fontSize:'17px',lineHeight:1.55,color:C.muted}},'Ein KI-Assistent, der Tickets und ToDos für dich erstellt, sucht und ändert - per Text oder Sprache. Läuft über deine eigene Supabase-Instanz (Anthropic Claude als Sprachmodell), niemals ohne deine Zustimmung übers Mikrofon.'),
-      !this.cfg?h('div',{style:{padding:'12px 16px',border:'1px solid '+C.lineStrong,background:C.soft,color:C.muted,fontFamily:C.serif,fontSize:'14px',marginBottom:'16px'}},'Bitte zuerst oben „Cloud-Sync einrichten" - Aphelios nutzt dieselbe Verbindung.'):null,
+      !this.cfg?h('div',{style:{padding:'12px 16px',border:'1px solid '+C.lineStrong,background:C.soft,color:C.muted,fontFamily:C.serif,fontSize:'14px',marginBottom:'16px'}},'Bitte zuerst oben „Cloud-Sync einrichten" - Klaus nutzt dieselbe Verbindung.'):null,
       h('div',{style:{display:'grid',gap:'10px',marginBottom:'16px'}},
-        aiToggle('Aphelios aktivieren','Blendet den Assistenten in der Kopfzeile ein.','enabled',!this.cfg),
+        aiToggle('Klaus aktivieren','Blendet den Assistenten in der Kopfzeile ein.','enabled',!this.cfg),
         aiToggle('Sprachein-/ausgabe','Mikrofon nur nach deiner Zustimmung, Antworten werden zusätzlich vorgelesen.','voiceEnabled',!cfg.enabled||!this.aiSpeechSupported()),
-        aiToggle('Wake-Word „Aphelios"','Hört fortlaufend auf das Weckwort (nur Chrome/Edge, Mikro-Symbol bleibt sichtbar).','wakeWordEnabled',!cfg.enabled||!cfg.voiceEnabled)),
+        aiToggle('Wake-Word „Klaus"','Hört fortlaufend auf das Weckwort (nur Chrome/Edge, Mikro-Symbol bleibt sichtbar).','wakeWordEnabled',!cfg.enabled||!cfg.voiceEnabled)),
       !this.aiSpeechSupported()?h('div',{style:{fontFamily:C.mono,fontSize:'11px',color:C.mutedSoft,marginBottom:'12px'}},'Sprachfunktionen werden von diesem Browser nicht unterstützt (nur Chrome/Edge).'):null,
       h('div',{style:{display:'flex',gap:'12px',flexWrap:'wrap'}},this.Btn('Einrichtung anzeigen',()=>this.openModal('aiSetup'),'secondary',{sm:true}),
-        this.Btn('Verlauf löschen',()=>{if(confirm('Gesamten Aphelios-Verlauf löschen?')){this._saveAiHistory([]);this.aiNewConversation();this.toast('Verlauf gelöscht.','ok');}},'danger',{sm:true}))));}
+        this.Btn('Verlauf löschen',()=>{if(confirm('Gesamten Klaus-Verlauf löschen?')){this._saveAiHistory([]);this.aiNewConversation();this.toast('Verlauf gelöscht.','ok');}},'danger',{sm:true}))));}
 
   renderAiChat(){const h=React.createElement,C=this.C;if(!this.state.aiOpen)return null;
     const mobile=this.state.mobile;const vh=this.state.vvh||(typeof window!=='undefined'?window.innerHeight:800);const vvTop=this.state.vvTop||0;
@@ -952,18 +952,18 @@ class Component extends DCLogic {
     return h('div',{style:panelStyle,onClick:e=>e.stopPropagation()},
       h('div',{style:{display:'flex',alignItems:'center',gap:'10px',padding:'16px 16px 14px',borderBottom:'1px solid rgba(255,255,255,.08)'}},
         h('span',{className:'ai-badge'+(this.state.aiVoice!=='idle'?' ai-badge-active':''),style:{flex:'none'}},h('span',{className:'ai-badge-dot'}),h('span',{className:'ai-badge-dot'}),h('span',{className:'ai-badge-dot'})),
-        h('div',{style:{flex:1,minWidth:0}},h('div',{style:{fontFamily:C.disp,fontSize:'19px',letterSpacing:'1px',color:'#fff'}},'Aphelios'),
+        h('div',{style:{flex:1,minWidth:0}},h('div',{style:{fontFamily:C.disp,fontSize:'19px',letterSpacing:'1px',color:'#fff'}},'Klaus'),
           voiceTxt?h('div',{style:{fontFamily:C.mono,fontSize:'10px',letterSpacing:'1px',color:this.accent}},voiceTxt):null),
         h('button',{onClick:()=>this.setState(s=>({aiHistoryOpen:!s.aiHistoryOpen})),title:'Verlauf',style:{border:'none',background:'none',color:C.mutedSoft,cursor:'pointer',display:'flex',padding:'6px'}},this.icon('clock',17,1.6)),
         h('button',{onClick:()=>this.aiNewConversation(),title:'Neue Unterhaltung',style:{border:'none',background:'none',color:C.mutedSoft,cursor:'pointer',display:'flex',padding:'6px'}},this.icon('plus',17,1.6)),
         h('button',{onClick:()=>this.aiToggleChat(),title:'Schließen',style:{border:'none',background:'none',color:C.mutedSoft,cursor:'pointer',display:'flex',padding:'6px'}},this.icon('x',17,1.6))),
       this.state.aiHistoryOpen?this.aiHistoryPanel():
       notConfigured?h('div',{style:{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'14px',padding:'30px',textAlign:'center'}},
-        h('div',{style:{fontFamily:C.serif,fontSize:'16px',color:C.body,lineHeight:1.5}},'Aphelios braucht eine Verbindung zu deiner Supabase-Instanz (dieselbe wie beim Cloud-Sync), um mit der KI zu sprechen.'),
+        h('div',{style:{fontFamily:C.serif,fontSize:'16px',color:C.body,lineHeight:1.5}},'Klaus braucht eine Verbindung zu deiner Supabase-Instanz (dieselbe wie beim Cloud-Sync), um mit der KI zu sprechen.'),
         this.Btn('Zu den Einstellungen',()=>{this.aiToggleChat();this.go('settings');},'primary',{sm:true})):
       notEnabled?h('div',{style:{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'14px',padding:'30px',textAlign:'center'}},
-        h('div',{style:{fontFamily:C.serif,fontSize:'16px',color:C.body,lineHeight:1.5}},'Aphelios ist noch deaktiviert.'),
-        this.Btn('Aphelios aktivieren',()=>this.setAiCfg({enabled:true}),'primary',{sm:true})):
+        h('div',{style:{fontFamily:C.serif,fontSize:'16px',color:C.body,lineHeight:1.5}},'Klaus ist noch deaktiviert.'),
+        this.Btn('Klaus aktivieren',()=>this.setAiCfg({enabled:true}),'primary',{sm:true})):
       h(React.Fragment,null,
         h('div',{className:'hd-sc',style:{flex:1,overflow:'auto',padding:'8px 16px'}},
           this.state.aiConvo.length===0?h('div',{style:{textAlign:'center',color:C.mutedSoft,fontFamily:C.serif,fontSize:'15px',padding:'40px 20px',lineHeight:1.6}},'Frag mich etwas — z. B. „Erstelle ein Ticket" oder „Suche offene Druckertickets".'):
@@ -977,7 +977,7 @@ class Component extends DCLogic {
           this.state.aiThinking?this.Btn('Stop',()=>this.aiStop(),'danger',{sm:true}):null,
           h('textarea',{value:this.state.aiInput,onChange:e=>this.setState({aiInput:e.target.value}),
             onKeyDown:e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(this.state.aiInput.trim()&&!this.state.aiThinking)this.aiSendTyped(this.state.aiInput);}},
-            placeholder:'Nachricht an Aphelios…',rows:1,disabled:this.state.aiThinking,
+            placeholder:'Nachricht an Klaus…',rows:1,disabled:this.state.aiThinking,
             style:{flex:1,resize:'none',minHeight:'40px',maxHeight:'120px',padding:'10px 12px',background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.14)',borderRadius:'10px',color:'#fff',fontFamily:C.serif,fontSize:'14.5px',outline:'none'}}),
           this.aiSpeechSupported()?h('button',{onClick:()=>{if(this._aiCmdRecog)this.aiStopCommandCapture();else this.aiStartCommandCapture();},title:'Sprechen',className:this.state.aiVoice==='listening'?'ai-mic-active':'',style:{flex:'none',width:'40px',height:'40px',borderRadius:'9999px',border:'1px solid rgba(255,255,255,.18)',background:this.state.aiVoice==='listening'?'rgba(192,85,63,.25)':'transparent',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}},this.icon('user',16,1.6)):null,
           h('button',{onClick:()=>{if(this.state.aiInput.trim()&&!this.state.aiThinking)this.aiSendTyped(this.state.aiInput);},disabled:this.state.aiThinking||!this.state.aiInput.trim(),title:'Senden',style:{flex:'none',width:'40px',height:'40px',borderRadius:'9999px',border:'1px solid #fff',background:'#fff',color:'#000',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',opacity:(this.state.aiThinking||!this.state.aiInput.trim())?.4:1}},this.icon('arrow',16,1.8)))));}
@@ -1058,7 +1058,7 @@ class Component extends DCLogic {
         ok=()=>{this.configureSync({url:mf.url,anonKey:mf.anonKey,code:mf.code});this.closeModal();};break;
       case 'sql':title='Supabase SQL-Setup';okLabel='Kopieren';body=h('div',null,h('p',{style:{margin:'0 0 14px',fontFamily:C.serif,fontSize:'16px',color:C.body}},'Einmalig im Supabase SQL-Editor ausführen:'),h('pre',{className:'hd-sc',style:{margin:0,padding:'16px',background:'#000',color:C.body,border:'1px solid '+C.lineStrong,fontFamily:C.mono,fontSize:'11.5px',lineHeight:1.6,overflow:'auto',maxHeight:'340px',whiteSpace:'pre'}},this.SUPABASE_SQL()));
         ok=()=>{navigator.clipboard&&navigator.clipboard.writeText(this.SUPABASE_SQL());this.toast('SQL kopiert.','ok');this.closeModal();};break;
-      case 'aiSetup':title='Aphelios einrichten';okLabel='Kopieren';body=h('div',null,h('pre',{className:'hd-sc',style:{margin:0,padding:'16px',background:'#000',color:C.body,border:'1px solid '+C.lineStrong,fontFamily:C.mono,fontSize:'11.5px',lineHeight:1.6,overflow:'auto',maxHeight:'380px',whiteSpace:'pre-wrap'}},this.AI_SETUP_TEXT()));
+      case 'aiSetup':title='Klaus einrichten';okLabel='Kopieren';body=h('div',null,h('pre',{className:'hd-sc',style:{margin:0,padding:'16px',background:'#000',color:C.body,border:'1px solid '+C.lineStrong,fontFamily:C.mono,fontSize:'11.5px',lineHeight:1.6,overflow:'auto',maxHeight:'380px',whiteSpace:'pre-wrap'}},this.AI_SETUP_TEXT()));
         ok=()=>{navigator.clipboard&&navigator.clipboard.writeText(this.AI_SETUP_TEXT());this.toast('Anleitung kopiert.','ok');this.closeModal();};break;
       default:return null;}
     const wide=['sync','sql','serviceNew','kbNew','todoNew','todoEdit'].includes(m.kind);
