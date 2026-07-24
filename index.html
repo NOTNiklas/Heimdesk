@@ -291,8 +291,8 @@ class Component extends DCLogic {
 
   /* ---------- mobile/OS push notifications ---------- */
   scanExpiring(){const out=[];this.selectVisible().forEach(t=>{if(!this.STATUS[t.status].open)return;const r=this.slaState(t,'resolution');const rr=this.slaState(t,'reaction');if(r.ok===false)out.push({t,kind:'overdue',txt:'SLA überschritten'});else if(r.warn)out.push({t,kind:'warn',txt:'Läuft bald aus · '+(r.txt||'')});else if(rr.ok===false)out.push({t,kind:'warn',txt:'Reaktionszeit überfällig'});});return out;}
-  notifyExpiring(force){this._notified=this._notified||new Set();const items=this.scanExpiring();const fresh=items.filter(x=>force||!this._notified.has(x.t.uid)).slice(0,3);
-    if(!fresh.length){if(force)this.demoPush();return;}
+  notifyExpiring(force,demo){this._notified=this._notified||new Set();const items=this.scanExpiring();const fresh=items.filter(x=>force||!this._notified.has(x.t.uid)).slice(0,3);
+    if(!fresh.length){if(demo)this.demoPush();return;}
     fresh.forEach((x,i)=>{this._notified.add(x.t.uid);setTimeout(()=>this.pushNotify(x),i*700);});}
   pushNotify(x){const id=(this._pid=(this._pid||0)+1);this.showPush({id,uid:x.t.uid,todoId:null,title:this.displayId(x.t)+' · '+x.txt,summary:x.t.summary,kind:x.kind});}
   demoPush(){const id=(this._pid=(this._pid||0)+1);this.showPush({id,uid:null,todoId:null,title:'Test-Hinweis',summary:'So sehen Benachrichtigungen aus. Aktuell ist nichts eskaliert oder fällig.',kind:'created'});this.toast('Test-Hinweis gesendet – aktuell ist nichts eskaliert oder fällig, daher ein Beispiel.','ok');}
@@ -592,7 +592,11 @@ class Component extends DCLogic {
         else if(ev==='message_delta'){if(data.delta&&data.delta.stop_reason)stopReason=data.delta.stop_reason;}
         else if(ev==='error'){throw new Error((data.error&&data.error.message)||'Stream-Fehler');}
       }}
-    return{blocks:blocks.filter(Boolean).map(b=>b.type==='tool_use'?{type:'tool_use',id:b.id,name:b.name,input:(()=>{try{return JSON.parse(b.inputJson||'{}');}catch(e){return{};}})()}:{type:'text',text:b.text}),stopReason};}
+    // Leere Text-Blöcke (Claude sendet vor einem reinen Tool-Aufruf gelegentlich einen Text-Block,
+    // der nie ein Delta bekommt) rausfiltern - sonst landet {type:'text',text:''} dauerhaft im
+    // Gesprächsverlauf und Anthropic lehnt JEDE folgende Anfrage mit "text content blocks must be
+    // non-empty" ab, bis die Unterhaltung neu gestartet wird.
+    return{blocks:blocks.filter(Boolean).map(b=>b.type==='tool_use'?{type:'tool_use',id:b.id,name:b.name,input:(()=>{try{return JSON.parse(b.inputJson||'{}');}catch(e){return{};}})()}:{type:'text',text:b.text}).filter(b=>b.type!=='text'||b.text.trim()),stopReason};}
   aiPushDisplay(msg){this.setState(s=>({aiConvo:[...s.aiConvo,{ts:Date.now(),...msg}]}));}
   aiSendTyped(userText){this._aiVoiceTurn=false;this.aiSend(userText);}
   async aiSend(userText){if(!userText||!userText.trim())return;
@@ -669,8 +673,12 @@ class Component extends DCLogic {
     // Mikrofonzugriff oder eine fehlende Internetverbindung (Spracherkennung läuft über einen
     // Cloud-Dienst) wie "Wake-Word tut einfach gar nichts", ohne erkennbaren Grund.
     rec.onerror=e=>{const err=e&&e.error;
-      if(err==='not-allowed'||err==='service-not-allowed'){this.aiStopWakeListening();this.toast('Mikrofonzugriff verweigert - Wake-Word deaktiviert. Bitte in den Browser-Einstellungen erlauben.','err');this.setAiCfg({wakeWordEnabled:false});return;}
-      if(err==='network'){if(!this._aiWakeNetToastAt||Date.now()-this._aiWakeNetToastAt>30000){this._aiWakeNetToastAt=Date.now();this.toast('Spracherkennung braucht eine Internetverbindung.','err');}}};
+      if(err==='not-allowed'||err==='service-not-allowed'){this.aiStopWakeListening();this.toast('Mikrofonzugriff verweigert - Wake-Word deaktiviert. Bitte in den Browser- UND System-Einstellungen (Mikrofon-Datenschutz) erlauben.','err');this.setAiCfg({wakeWordEnabled:false});return;}
+      if(err==='audio-capture'){this.aiStopWakeListening();this.toast('Kein Mikrofon gefunden oder vom Betriebssystem blockiert - Wake-Word deaktiviert.','err');this.setAiCfg({wakeWordEnabled:false});return;}
+      if(err==='network'){if(!this._aiWakeNetToastAt||Date.now()-this._aiWakeNetToastAt>30000){this._aiWakeNetToastAt=Date.now();this.toast('Spracherkennung braucht eine Internetverbindung.','err');}return;}
+      // Kein Fehlertyp darf mehr komplett unsichtbar bleiben - sonst wirkt jeder nicht explizit
+      // behandelte Fehlercode wieder wie "Wake-Word tut einfach gar nichts".
+      if(err&&err!=='no-speech'&&err!=='aborted'){if(!this._aiWakeErrToastAt||Date.now()-this._aiWakeErrToastAt>30000){this._aiWakeErrToastAt=Date.now();this.toast('Wake-Word-Fehler ('+err+').','err');}}};
     rec.onend=()=>{if(this._aiWakeShouldRun){try{rec.start();}catch(e){}}};
     this._aiWakeShouldRun=true;this._aiWakeRecog=rec;this.setState({aiWakeOn:true,aiVoice:'wake'});
     try{rec.start();}catch(e){this.toast('Wake-Word konnte nicht gestartet werden.','err');}}
@@ -682,7 +690,7 @@ class Component extends DCLogic {
     rec.onresult=e=>{let interim='',fin='';for(let i=0;i<e.results.length;i++){if(e.results[i].isFinal)fin+=e.results[i][0].transcript;else interim+=e.results[i][0].transcript;}
       this.setState({aiInput:(fin+interim).trim()});if(fin)finalText=fin;};
     rec.onerror=e=>{const err=e&&e.error;
-      if(err==='not-allowed'||err==='service-not-allowed')errMsg='Mikrofonzugriff verweigert. Bitte in den Browser-Einstellungen erlauben.';
+      if(err==='not-allowed'||err==='service-not-allowed')errMsg='Mikrofonzugriff verweigert. Bitte in den Browser- UND System-Einstellungen (Mikrofon-Datenschutz) erlauben.';
       else if(err==='network')errMsg='Spracherkennung braucht eine Internetverbindung.';
       else if(err==='audio-capture')errMsg='Kein Mikrofon gefunden.';
       else if(err&&err!=='no-speech'&&err!=='aborted')errMsg='Sprachaufnahme-Fehler ('+err+').';};
@@ -1325,7 +1333,7 @@ class Component extends DCLogic {
         this.aiSettingsCard(),
         this.Card(h('div',null,this.Eyebrow('Automatik & SLA',{marginBottom:'20px'}),h('div',{style:{display:'grid',gridTemplateColumns:this.state.mobile?'1fr':'1fr 1fr 1fr',gap:'18px',marginBottom:'18px'}},numField('Reaktivierung Pause (Tage)','pauseReactivationDays'),numField('Auto-Schließen (Tage)','resolvedAutoCloseDays'),numField('Eskalation nach (Tage)','escalationDays')),h('div',{style:{display:'grid',gap:'10px'}},toggle('E-Mail-Benachrichtigungen','emailNotify'),toggle('Wiedereröffnen sperren','reopenLocked')),h('div',{style:{marginTop:'16px'}},this.Btn('Automatik ausführen',()=>this.runAutomationNow(),'secondary',{sm:true,icon:'reload'})))),
         h('div',{style:{display:'grid',gridTemplateColumns:this.state.mobile?'1fr':'repeat(3,1fr)',gap:'16px'}},listEditor('Personen','users'),listEditor('Rollen','roles'),listEditor('Kategorien','categories')),
-        this.Card(h('div',null,this.Eyebrow('Benachrichtigungen',{marginBottom:'12px'}),h('p',{style:{margin:'0 0 16px',fontFamily:C.serif,fontSize:'17px',lineHeight:1.55,color:C.muted}},this.notifState()==='granted'?'Aktiv – auslaufende Tickets erscheinen als Systembenachrichtigung, auch außerhalb der App.':'Erlaube Benachrichtigungen, um Hinweise zu auslaufenden Tickets auf dem Gerät zu erhalten.'),h('div',{style:{display:'flex',gap:'12px',flexWrap:'wrap',alignItems:'center'}},this.notifState()==='granted'?this.Btn('Test-Hinweis',()=>this.notifyExpiring(true),'secondary',{sm:true,icon:'reload'}):this.Btn('Benachrichtigungen aktivieren',()=>this.requestNotif(),'primary',{sm:true}),h('span',{style:{fontFamily:C.mono,fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:C.mutedSoft}},'Status: '+({granted:'Aktiv',denied:'Abgelehnt',default:'Nicht gesetzt',unsupported:'Nicht unterstützt'}[this.notifState()]||this.notifState()))))),
+        this.Card(h('div',null,this.Eyebrow('Benachrichtigungen',{marginBottom:'12px'}),h('p',{style:{margin:'0 0 16px',fontFamily:C.serif,fontSize:'17px',lineHeight:1.55,color:C.muted}},this.notifState()==='granted'?'Aktiv – auslaufende Tickets erscheinen als Systembenachrichtigung, auch außerhalb der App.':'Erlaube Benachrichtigungen, um Hinweise zu auslaufenden Tickets auf dem Gerät zu erhalten.'),h('div',{style:{display:'flex',gap:'12px',flexWrap:'wrap',alignItems:'center'}},this.notifState()==='granted'?this.Btn('Test-Hinweis',()=>this.notifyExpiring(true,true),'secondary',{sm:true,icon:'reload'}):this.Btn('Benachrichtigungen aktivieren',()=>this.requestNotif(),'primary',{sm:true}),h('span',{style:{fontFamily:C.mono,fontSize:'10px',letterSpacing:'1.5px',textTransform:'uppercase',color:C.mutedSoft}},'Status: '+({granted:'Aktiv',denied:'Abgelehnt',default:'Nicht gesetzt',unsupported:'Nicht unterstützt'}[this.notifState()]||this.notifState()))))),
         this.Card(h('div',null,this.Eyebrow('Daten',{marginBottom:'16px'}),h('div',{style:{display:'flex',gap:'12px',flexWrap:'wrap'}},this.Btn('Exportieren',()=>this.exportData(),'secondary',{sm:true}),
           this.Btn('Importieren',()=>{const inp=document.createElement('input');inp.type='file';inp.accept='application/json';inp.onchange=()=>{if(inp.files[0])this.importData(inp.files[0]);};inp.click();},'secondary',{sm:true}),
           this.Btn('Zurücksetzen',()=>this.resetAll(),'danger',{sm:true,icon:'trash'}))))));}
