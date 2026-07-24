@@ -272,7 +272,7 @@ class Component extends DCLogic {
       if((e.metaKey||e.ctrlKey)&&e.shiftKey&&(e.key==='A'||e.key==='a')){e.preventDefault();if(!this.aiSpeechSupported()){this.toast('Spracherkennung wird von diesem Browser nicht unterstützt.','err');return;}if(!this.state.aiOpen)this.setState({aiOpen:true});this.aiLoadMarkdownLibs();if(this._aiCmdRecog)this.aiStopCommandCapture();else this.aiStartCommandCapture();}};
     window.addEventListener('keydown',this.onKey);
     this.runStartupSync();
-    {const n=this.selectVisible().length;this.triggerListLoad(n?Math.min(4000,Math.max(400,n*500)):0);}
+    {const n=this.selectVisible().length;this.triggerListLoad(n?Math.min(800,Math.max(80,n*100)):0);}
     this.triggerViewLoad(this.state.ui.view);
     if(this.state.aiCfg.enabled&&this.state.aiCfg.voiceEnabled&&this.state.aiCfg.wakeWordEnabled)this.aiStartWakeListening();
     if(this.state.aiCfg.enabled)setTimeout(()=>this.aiLoadMarkdownLibs(),1200);
@@ -284,9 +284,9 @@ class Component extends DCLogic {
       speechSynthesis.onvoiceschanged=()=>{this._aiVoicesCache=speechSynthesis.getVoices();};
     }
   }
-  triggerListLoad(ms){ms=(ms===undefined)?3000:ms;if(this._listT)clearTimeout(this._listT);if(!ms){this.setState({listLoading:false});return;}this.setState({listLoading:true});this._listT=setTimeout(()=>this.setState({listLoading:false}),ms);}
+  triggerListLoad(ms){ms=(ms===undefined)?100:ms;if(this._listT)clearTimeout(this._listT);if(!ms){this.setState({listLoading:false});return;}this.setState({listLoading:true});this._listT=setTimeout(()=>this.setState({listLoading:false}),ms);}
   viewItemCount(view){const db=this.state.db;switch(view){case 'dashboard':return this.selectVisible().length;case 'kb':return (db.kb||[]).length;case 'catalog':return (db.services||[]).length;case 'assets':return (db.assets||[]).length;default:return 0;}}
-  triggerViewLoad(view){const perItem={dashboard:500,kb:1000,catalog:1000,assets:1000}[view];let dur=0;if(perItem){const n=this.viewItemCount(view);dur=n?Math.min(4000,Math.max(400,n*perItem)):0;}if(this._viewT)clearTimeout(this._viewT);if(dur){this.setState({viewLoading:true});this._viewT=setTimeout(()=>this.setState({viewLoading:false}),dur);}else if(this.state.viewLoading){this.setState({viewLoading:false});}}
+  triggerViewLoad(view){const perItem={dashboard:100,kb:100,catalog:100,assets:100}[view];let dur=0;if(perItem){const n=this.viewItemCount(view);dur=n?Math.min(800,Math.max(80,n*perItem)):0;}if(this._viewT)clearTimeout(this._viewT);if(dur){this.setState({viewLoading:true});this._viewT=setTimeout(()=>this.setState({viewLoading:false}),dur);}else if(this.state.viewLoading){this.setState({viewLoading:false});}}
   viewSkeleton(){const h=React.createElement,C=this.C;const n=Math.max(3,Math.min(8,this.viewItemCount(this.state.ui.view)||6));const bar=(w,ht,mt)=>h('div',{className:'lx-skel',style:{width:w,height:ht||'14px',marginTop:mt||'0',borderRadius:'3px'}});const card=(k)=>h('div',{key:k,style:{border:'1px solid '+C.line,background:C.card,padding:'22px',animation:'hd-stagger .4s both',animationDelay:(k*55)+'ms'}},bar('40%','12px'),bar('80%','22px','14px'),bar('60%','12px','14px'));return h('div',{className:'lx-view'},h('div',{style:{marginBottom:'32px',paddingBottom:'20px',borderBottom:'1px solid '+C.line}},bar('120px','12px'),bar(this.state.mobile?'70%':'340px','44px','16px')),h('div',{style:{display:'grid',gridTemplateColumns:this.state.mobile?'1fr':'repeat(auto-fill,minmax(240px,1fr))',gap:'16px'}},Array.from({length:n},(_,i)=>i).map(i=>card(i))));}
 
   /* ---------- mobile/OS push notifications ---------- */
@@ -329,7 +329,7 @@ class Component extends DCLogic {
 
   /* ---------- nav ---------- */
   setUi(patch){this.setState(s=>{const ui={...s.ui,...patch};this.persistUI(ui);return {ui};});}
-  go(view,current){const p={view};if(current!==undefined)p.current=current;this.setUi(p);this.setState({navOpen:false});if(view==='list'){const n=this.selectVisible().length;this.triggerListLoad(n?Math.min(4000,Math.max(400,n*500)):0);}this.triggerViewLoad(view);if(typeof window!=='undefined')window.scrollTo({top:0});}
+  go(view,current){const p={view};if(current!==undefined)p.current=current;this.setUi(p);this.setState({navOpen:false});if(view==='list'){const n=this.selectVisible().length;this.triggerListLoad(n?Math.min(800,Math.max(80,n*100)):0);}this.triggerViewLoad(view);if(typeof window!=='undefined')window.scrollTo({top:0});}
   openTicket(uid){this.go('detail',uid);}
   toggleRole(){this.setUi({role:this.state.ui.role==='agent'?'user':'agent'});}
 
@@ -756,7 +756,7 @@ class Component extends DCLogic {
     this.setState(s=>({reloading:true,spin:(s.spin||0)+360}));
     if(this._spinTimer)clearInterval(this._spinTimer);
     this._spinTimer=setInterval(()=>this.setState(s=>({spin:(s.spin||0)+360})),650);
-    if(this.state.ui.view==='list'){const n=this.selectVisible().length;this.triggerListLoad(n?Math.min(4000,Math.max(400,n*500)):0);}
+    if(this.state.ui.view==='list'){const n=this.selectVisible().length;this.triggerListLoad(n?Math.min(800,Math.max(80,n*100)):0);}
     try{
       if(this.cfg&&this.isOnline()){await this.syncNow();this.toast('Cloud-Daten aktualisiert.','ok');}
       else{const db=this._loadDB();this.setState({db});this.toast(this.cfg?'Offline – lokal aktualisiert.':'Lokal aktualisiert.',this.cfg?'err':'ok');}
