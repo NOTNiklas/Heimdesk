@@ -673,8 +673,12 @@ class Component extends DCLogic {
     // Mikrofonzugriff oder eine fehlende Internetverbindung (Spracherkennung läuft über einen
     // Cloud-Dienst) wie "Wake-Word tut einfach gar nichts", ohne erkennbaren Grund.
     rec.onerror=e=>{const err=e&&e.error;
-      if(err==='not-allowed'||err==='service-not-allowed'){this.aiStopWakeListening();this.toast('Mikrofonzugriff verweigert - Wake-Word deaktiviert. Bitte in den Browser-Einstellungen erlauben.','err');this.setAiCfg({wakeWordEnabled:false});return;}
-      if(err==='network'){if(!this._aiWakeNetToastAt||Date.now()-this._aiWakeNetToastAt>30000){this._aiWakeNetToastAt=Date.now();this.toast('Spracherkennung braucht eine Internetverbindung.','err');}}};
+      if(err==='not-allowed'||err==='service-not-allowed'){this.aiStopWakeListening();this.toast('Mikrofonzugriff verweigert - Wake-Word deaktiviert. Bitte in den Browser- UND System-Einstellungen (Mikrofon-Datenschutz) erlauben.','err');this.setAiCfg({wakeWordEnabled:false});return;}
+      if(err==='audio-capture'){this.aiStopWakeListening();this.toast('Kein Mikrofon gefunden oder vom Betriebssystem blockiert - Wake-Word deaktiviert.','err');this.setAiCfg({wakeWordEnabled:false});return;}
+      if(err==='network'){if(!this._aiWakeNetToastAt||Date.now()-this._aiWakeNetToastAt>30000){this._aiWakeNetToastAt=Date.now();this.toast('Spracherkennung braucht eine Internetverbindung.','err');}return;}
+      // Kein Fehlertyp darf mehr komplett unsichtbar bleiben - sonst wirkt jeder nicht explizit
+      // behandelte Fehlercode wieder wie "Wake-Word tut einfach gar nichts".
+      if(err&&err!=='no-speech'&&err!=='aborted'){if(!this._aiWakeErrToastAt||Date.now()-this._aiWakeErrToastAt>30000){this._aiWakeErrToastAt=Date.now();this.toast('Wake-Word-Fehler ('+err+').','err');}}};
     rec.onend=()=>{if(this._aiWakeShouldRun){try{rec.start();}catch(e){}}};
     this._aiWakeShouldRun=true;this._aiWakeRecog=rec;this.setState({aiWakeOn:true,aiVoice:'wake'});
     try{rec.start();}catch(e){this.toast('Wake-Word konnte nicht gestartet werden.','err');}}
@@ -686,7 +690,7 @@ class Component extends DCLogic {
     rec.onresult=e=>{let interim='',fin='';for(let i=0;i<e.results.length;i++){if(e.results[i].isFinal)fin+=e.results[i][0].transcript;else interim+=e.results[i][0].transcript;}
       this.setState({aiInput:(fin+interim).trim()});if(fin)finalText=fin;};
     rec.onerror=e=>{const err=e&&e.error;
-      if(err==='not-allowed'||err==='service-not-allowed')errMsg='Mikrofonzugriff verweigert. Bitte in den Browser-Einstellungen erlauben.';
+      if(err==='not-allowed'||err==='service-not-allowed')errMsg='Mikrofonzugriff verweigert. Bitte in den Browser- UND System-Einstellungen (Mikrofon-Datenschutz) erlauben.';
       else if(err==='network')errMsg='Spracherkennung braucht eine Internetverbindung.';
       else if(err==='audio-capture')errMsg='Kein Mikrofon gefunden.';
       else if(err&&err!=='no-speech'&&err!=='aborted')errMsg='Sprachaufnahme-Fehler ('+err+').';};
